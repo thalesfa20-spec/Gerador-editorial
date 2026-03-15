@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Gerador Editorial — Proposta Fotográfica v3</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Montserrat:wght@200;300;400;500;600;700;800;900&family=Great+Vibes&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=Josefin+Slab:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Abril+Fatface&family=Unna:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@200;300;400;500;600;700;800;900&family=Great+Vibes&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -29,7 +29,7 @@ body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;
 .main{padding:40px 48px;max-width:940px;}
 .section-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:28px 32px;margin-bottom:16px;}
 .section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
-.section-num{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold);font-weight:300;line-height:1;}
+.section-num{font-family:'${getSerifFont()}',serif;font-size:32px;color:var(--gold);font-weight:300;line-height:1;}
 .section-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);font-weight:500;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
@@ -60,7 +60,7 @@ input[type=color]{width:28px;height:28px;border:none;border-radius:50%;cursor:po
 /* Package cards */
 .pkg-card{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:18px;margin-bottom:10px;position:relative;}
 .pkg-top{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
-.pkg-num{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--gold);font-weight:300;min-width:32px;line-height:1;}
+.pkg-num{font-family:'${getSerifFont()}',serif;font-size:28px;color:var(--gold);font-weight:300;min-width:32px;line-height:1;}
 .pkg-top input{flex:1;}
 .pkg-top input.price{max-width:110px;flex:none;}
 .ir{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
@@ -425,6 +425,7 @@ input[type=range]{accent-color:var(--gold);}
   #free-canvas { touch-action: none; }
   .free-canvas-mobile-hint { display: block !important; }
 }
+
 .free-canvas-mobile-hint { display: none; }
 </style>
 </head>
@@ -556,6 +557,21 @@ input[type=range]{accent-color:var(--gold);}
         <option value="navy">Azul Noite</option>
         <option value="sand">Areia (bege)</option>
         <option value="graphite">Grafite</option>
+      </select>
+    </div>
+    <div class="f">
+      <label>Fonte serif (títulos)</label>
+      <select id="serif-font" onchange="schedulePreview()">
+        <option value="Cormorant Garamond">Cormorant Garamond — Clássica</option>
+        <option value="Playfair Display">Playfair Display — Moderna</option>
+        <option value="EB Garamond">EB Garamond — Renascentista</option>
+        <option value="Lora">Lora — Versátil</option>
+        <option value="Libre Baskerville">Libre Baskerville — Editorial</option>
+        <option value="Merriweather">Merriweather — Encorpada</option>
+        <option value="Crimson Text">Crimson Text — Sofisticada</option>
+        <option value="Unna">Unna — Minimalista</option>
+        <option value="Josefin Slab">Josefin Slab — Jovem</option>
+        <option value="Abril Fatface">Abril Fatface — Festiva</option>
       </select>
     </div>
     <div class="f">
@@ -1155,7 +1171,7 @@ function photographerBlock(accent, fgd, TS_ATTR, logoMaxH) {
   }
   const name=gv('f-name'), title=gv('f-title');
   if(!name && !title) return '';
-  return `<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:${accent};${TS_ATTR}">${name}</div>
+  return `<div style="font-family:'${getSerifFont()}',serif;font-style:italic;font-size:19px;color:${accent};${TS_ATTR}">${name}</div>
     <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:2px;color:${fgd};margin-top:4px;text-transform:uppercase;${TS_ATTR}">${title}</div>`;
 }
 var coverImgPos = '50% 50%';
@@ -1183,6 +1199,10 @@ function gv(id){ return (document.getElementById(id)?.value||'').trim(); }
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),3000); }
 function setP(n){ document.getElementById('pfill').style.width=n+'%'; }
+function getSerifFont(){ return gv('serif-font')||'Cormorant Garamond'; }
+
+// ── Font Picker ───────────────────────────────────────────────────────────────
+
 
 function loadImg(inp, key, prevId) {
   const f = inp.files[0]; if (!f) return;
@@ -2578,7 +2598,7 @@ function buildOneGalPage(rows, galTitle, galSub, isFirst){
   const hdr=isFirst
     ?`<div style="flex-shrink:0;margin-bottom:18px;padding-bottom:13px;border-bottom:1px solid ${accent}33;">
         <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:5px;${TSA}">${galSub}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:40px;color:${fg};font-weight:300;line-height:1;${TSA}">${galTitle}</div>
+        <div style="font-family:'${getSerifFont()}',serif;font-size:40px;color:${fg};font-weight:300;line-height:1;${TSA}">${galTitle}</div>
       </div>`
     :`<div style="flex-shrink:0;margin-bottom:13px;">
         <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:4px;color:${accent};text-transform:uppercase;${TSA}">${galTitle} — cont.</div>
@@ -2728,7 +2748,7 @@ function buildCoverPage() {
     textBlock=`<div style="position:absolute;top:0;left:0;right:0;padding:52px 60px 40px;background:${buildGradient('to bottom',bg)};">
       <div style="text-align:${align};">
         <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:14px;${TS_ATTR}">${service}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?52:68}px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${client}</div>
+        <div style="font-family:'${getSerifFont()}',serif;font-size:${client.length>14?52:68}px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${client}</div>
         <div style="width:50px;height:1px;background:${accent};${mAuto}"></div>
         <div style="font-family:'Montserrat',sans-serif;font-size:10px;color:${fgd};letter-spacing:1px;${TS_ATTR}">${tagline}</div>
       </div>
@@ -2748,7 +2768,7 @@ function buildCoverPage() {
       <div style="width:${Math.round(W*0.5)}px;height:${H}px;position:relative;overflow:hidden;flex-shrink:0;">${imgHtml}</div>
       <div style="flex:1;height:${H}px;background:${bg};display:flex;flex-direction:column;justify-content:center;padding:60px 50px;overflow:hidden;">
         <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:20px;${TS_ATTR}">${service}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?48:62}px;color:${fg};font-weight:300;line-height:1.05;${TS_ATTR}">${client}</div>
+        <div style="font-family:'${getSerifFont()}',serif;font-size:${client.length>14?48:62}px;color:${fg};font-weight:300;line-height:1.05;${TS_ATTR}">${client}</div>
         <div style="width:50px;height:1px;background:${accent};margin:20px 0;"></div>
         <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:${fgd};line-height:1.6;${TS_ATTR}">${tagline}</div>
         <div style="margin-top:auto;padding-top:40px;">
@@ -2768,7 +2788,7 @@ function buildCoverPage() {
       ${dateCorner}
       <div style="flex:1;height:${H}px;background:${bg};display:flex;flex-direction:column;justify-content:center;padding:60px 50px;overflow:hidden;">
         <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:20px;${TS_ATTR}">${service}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?48:62}px;color:${fg};font-weight:300;line-height:1.05;${TS_ATTR}">${client}</div>
+        <div style="font-family:'${getSerifFont()}',serif;font-size:${client.length>14?48:62}px;color:${fg};font-weight:300;line-height:1.05;${TS_ATTR}">${client}</div>
         <div style="width:50px;height:1px;background:${accent};margin:20px 0;"></div>
         <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:${fgd};line-height:1.6;${TS_ATTR}">${tagline}</div>
         <div style="margin-top:auto;padding-top:40px;">
@@ -2781,7 +2801,7 @@ function buildCoverPage() {
   } else if(layout==='centered'){
     textBlock=`<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px;">
       <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:22px;${TS_ATTR}">${service}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?56:72}px;color:${fg};font-weight:300;line-height:1.05;letter-spacing:2px;${TS_ATTR}">${client}</div>
+      <div style="font-family:'${getSerifFont()}',serif;font-size:${client.length>14?56:72}px;color:${fg};font-weight:300;line-height:1.05;letter-spacing:2px;${TS_ATTR}">${client}</div>
       <div style="width:60px;height:1px;background:${accent};margin:22px auto;"></div>
       <div style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:2px;color:${fgd};font-weight:300;${TS_ATTR}">${tagline}</div>
       <div style="position:absolute;bottom:52px;text-align:center;">
@@ -2795,7 +2815,7 @@ function buildCoverPage() {
     textBlock=`<div style="position:absolute;bottom:0;left:0;right:0;padding:50px 60px;background:${buildGradient('to top',bg)};">
       <div style="text-align:${align};">
         <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:14px;${TS_ATTR}">${service}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?52:68}px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${client}</div>
+        <div style="font-family:'${getSerifFont()}',serif;font-size:${client.length>14?52:68}px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${client}</div>
         <div style="width:50px;height:1px;background:${accent};${mAuto}"></div>
         <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:1px;color:${fgd};${TS_ATTR}">${tagline}</div>
         <div style="display:flex;align-items:flex-end;${phAlign}margin-top:16px;">
@@ -2834,8 +2854,8 @@ function buildPkgPage(pkg, idx) {
       <div style="position:absolute;inset:0;background:${bg};opacity:${op};"></div>`:`<div style="position:absolute;inset:0;background:${bg}ee;"></div>`}
       <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:70px 80px;">
         <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:8px;${TS_ATTR}">Pacote ${num}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:72px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${pkg.name}</div>
-        ${pkg.subtitle?`<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:${accent};margin-top:8px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
+        <div style="font-family:'${getSerifFont()}',serif;font-size:72px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${pkg.name}</div>
+        ${pkg.subtitle?`<div style="font-family:'${getSerifFont()}',serif;font-style:italic;font-size:22px;color:${accent};margin-top:8px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
         <div style="width:50px;height:1px;background:${accent};margin:28px 0;"></div>
         <div style="flex:1;">${itemsHtml}</div>
         <div style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.12);padding-top:28px;display:flex;align-items:baseline;justify-content:space-between;">
@@ -2849,8 +2869,8 @@ function buildPkgPage(pkg, idx) {
     inner=`<div style="position:absolute;inset:0;display:flex;">
       <div style="width:${textW}px;height:${H}px;background:${bg};display:flex;flex-direction:column;padding:70px 52px;overflow:hidden;flex-shrink:0;">
         <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:8px;${TS_ATTR}">Pacote ${num}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:58px;color:${fg};font-weight:300;line-height:1;letter-spacing:1px;${TS_ATTR}">${pkg.name}</div>
-        ${pkg.subtitle?`<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:${accent};margin-top:6px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
+        <div style="font-family:'${getSerifFont()}',serif;font-size:58px;color:${fg};font-weight:300;line-height:1;letter-spacing:1px;${TS_ATTR}">${pkg.name}</div>
+        ${pkg.subtitle?`<div style="font-family:'${getSerifFont()}',serif;font-style:italic;font-size:20px;color:${accent};margin-top:6px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
         <div style="width:40px;height:1px;background:${accent};margin:24px 0;"></div>
         <div style="flex:1;">${itemsHtml}</div>
         <div style="margin-top:auto;border-top:1px solid ${accent}33;padding-top:24px;">
@@ -2871,8 +2891,8 @@ function buildPkgPage(pkg, idx) {
       </div>
       <div style="width:${textW}px;height:${H}px;background:${bg};display:flex;flex-direction:column;padding:70px 52px;overflow:hidden;">
         <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:8px;${TS_ATTR}">Pacote ${num}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:58px;color:${fg};font-weight:300;line-height:1;letter-spacing:1px;${TS_ATTR}">${pkg.name}</div>
-        ${pkg.subtitle?`<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:${accent};margin-top:6px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
+        <div style="font-family:'${getSerifFont()}',serif;font-size:58px;color:${fg};font-weight:300;line-height:1;letter-spacing:1px;${TS_ATTR}">${pkg.name}</div>
+        ${pkg.subtitle?`<div style="font-family:'${getSerifFont()}',serif;font-style:italic;font-size:20px;color:${accent};margin-top:6px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
         <div style="width:40px;height:1px;background:${accent};margin:24px 0;"></div>
         <div style="flex:1;">${itemsHtml}</div>
         <div style="margin-top:auto;border-top:1px solid ${accent}33;padding-top:24px;">
@@ -2899,8 +2919,8 @@ function buildPkgPage(pkg, idx) {
       <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:${p.justify};align-items:${p.align};padding:${p.pad};text-align:${p.textAlign};">
         <div style="${marginAuto}">
           <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:8px;${TS_ATTR}">Pacote ${num}</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:72px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${pkg.name}</div>
-          ${pkg.subtitle?`<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:${accent};margin-top:8px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
+          <div style="font-family:'${getSerifFont()}',serif;font-size:72px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${pkg.name}</div>
+          ${pkg.subtitle?`<div style="font-family:'${getSerifFont()}',serif;font-style:italic;font-size:22px;color:${accent};margin-top:8px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
           <div style="width:50px;height:1px;background:${accent};margin:24px ${p.align==='center'?'auto':p.align==='flex-end'?'0 0 auto':'0'};"></div>
           <div>${itemsHtml}</div>
           <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.12);padding-top:20px;display:flex;align-items:baseline;gap:16px;justify-content:${p.align==='flex-end'?'flex-end':p.align==='center'?'center':'flex-start'};">
@@ -2937,7 +2957,7 @@ function buildTermsPage() {
     <!-- Coluna esquerda: termos -->
     <div style="position:absolute;top:0;left:0;width:${leftW}px;height:${H}px;padding:80px 60px;box-sizing:border-box;overflow:hidden;">
       <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:10px;${TS_ATTR}">Informações</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:48px;color:${fg};font-weight:300;line-height:1;margin-bottom:32px;${TS_ATTR}">Reserva</div>
+      <div style="font-family:'${getSerifFont()}',serif;font-size:48px;color:${fg};font-weight:300;line-height:1;margin-bottom:32px;${TS_ATTR}">Reserva</div>
       <div style="overflow:hidden;">${termsHtml}</div>
     </div>
     <!-- Coluna direita: foto (altura explícita) -->
@@ -2949,7 +2969,7 @@ function buildTermsPage() {
     </div>
     <!-- Rodapé direito: nome do fotógrafo -->
     <div style="position:absolute;top:${photoH}px;left:${leftW}px;width:${rightW}px;height:${footerH}px;background:${bg};padding:24px 44px;box-sizing:border-box;">
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:${accent};margin-bottom:4px;${TS_ATTR}">${name}</div>
+      <div style="font-family:'${getSerifFont()}',serif;font-style:italic;font-size:28px;color:${accent};margin-bottom:4px;${TS_ATTR}">${name}</div>
       <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:3px;color:${fgd};text-transform:uppercase;margin-bottom:16px;${TS_ATTR}">${title}</div>
       <div style="width:30px;height:.5px;background:${accent};"></div>
     </div>
@@ -2993,12 +3013,12 @@ function buildContactPage() {
     <!-- Coluna direita: informações de contato -->
     <div style="position:absolute;top:0;left:${photoW}px;width:${rightW}px;height:${H}px;background:${bg};padding:80px 60px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;">
       <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:12px;${TS_ATTR}">Contato</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:52px;color:${fg};font-weight:300;line-height:1;margin-bottom:6px;${TS_ATTR}">${name}</div>
+      <div style="font-family:'${getSerifFont()}',serif;font-style:italic;font-size:52px;color:${fg};font-weight:300;line-height:1;margin-bottom:6px;${TS_ATTR}">${name}</div>
       <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:32px;${TS_ATTR}">${title}</div>
       <div style="width:40px;height:1px;background:${accent};margin-bottom:36px;"></div>
       ${contacts}
       <div style="margin-top:40px;padding-top:40px;border-top:1px solid ${accent}33;">
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:${fgd};${TS_ATTR}">${gv('f-tagline')}</div>
+        <div style="font-family:'${getSerifFont()}',serif;font-style:italic;font-size:18px;color:${fgd};${TS_ATTR}">${gv('f-tagline')}</div>
       </div>
     </div>
   </div>`;
