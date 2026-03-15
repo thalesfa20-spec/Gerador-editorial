@@ -1,0 +1,3215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Gerador Editorial — Proposta Fotográfica v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Montserrat:wght@200;300;400;500;600;700;800;900&family=Great+Vibes&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0E0E0C;--surface:#161614;--surface2:#1E1E1B;--border:#2A2A26;
+  --gold:#C9A96E;--gold2:#E8C97E;--text:#F0EDE6;--muted:#7A7568;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;font-weight:300;min-height:100vh;}
+.app{display:grid;grid-template-columns:300px 1fr;min-height:100vh;}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:28px 20px;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
+.sidebar-logo{font-family:'Great Vibes',cursive;font-size:28px;color:var(--gold);line-height:1.1;margin-bottom:2px;}
+.sidebar-sub{font-size:8px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:22px;}
+.nav-section{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 6px;padding-left:2px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:3px;cursor:pointer;font-size:11px;font-weight:400;color:#888;transition:all .18s;border-left:2px solid transparent;text-decoration:none;margin-bottom:1px;}
+.nav-item:hover,.nav-item.on{color:var(--text);background:rgba(201,169,110,.1);border-left-color:var(--gold);}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:.35;flex-shrink:0;}
+.nav-item.on .nav-dot{opacity:1;}
+.main{padding:40px 48px;max-width:940px;}
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:28px 32px;margin-bottom:16px;}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.section-num{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold);font-weight:300;line-height:1;}
+.section-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.f{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.f:last-child{margin-bottom:0;}
+label{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:500;}
+input[type=text],input[type=email],input[type=tel],textarea,select{
+  font-family:'Montserrat',sans-serif;font-weight:300;font-size:13px;
+  color:var(--text);background:var(--surface2);border:1px solid var(--border);
+  border-radius:3px;padding:9px 12px;outline:none;transition:border-color .2s;width:100%;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--gold);}
+textarea{resize:vertical;min-height:64px;}
+select{cursor:pointer;}
+select option{background:var(--surface2);}
+.color-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0;}
+.color-swatch.active{border-color:white;transform:scale(1.15);}
+.color-swatch:hover{transform:scale(1.1);}
+input[type=color]{width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;padding:0;background:none;}
+.uz{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;border:1.5px dashed var(--border);border-radius:3px;background:var(--surface2);padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.uz:hover{background:var(--surface);border-color:var(--gold);}
+.uz input[type=file]{position:absolute;inset:0;opacity:0.001;cursor:pointer;width:100%;height:100%;font-size:16px;-webkit-appearance:none;}
+.uz-i{font-size:18px;opacity:.3;}
+.uz-l{font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+.uprev{width:100%;border-radius:3px;display:none;margin-top:8px;object-fit:cover;max-height:180px;}
+.uprev.on{display:block;}
+/* Package cards */
+.pkg-card{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:18px;margin-bottom:10px;position:relative;}
+.pkg-top{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+.pkg-num{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--gold);font-weight:300;min-width:32px;line-height:1;}
+.pkg-top input{flex:1;}
+.pkg-top input.price{max-width:110px;flex:none;}
+.ir{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.ir input{flex:1;}
+.brm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 5px;transition:color .15s;}
+.brm:hover{color:var(--text);}
+.bai{background:none;border:1px solid var(--border);color:var(--muted);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;padding:5px 11px;cursor:pointer;border-radius:3px;font-family:'Montserrat',sans-serif;transition:all .15s;margin-top:3px;}
+.bai:hover{border-color:var(--gold);color:var(--gold);}
+.pkg-actions{position:absolute;top:10px;right:10px;display:flex;gap:4px;}
+.bdup{background:none;border:1px solid var(--border);color:var(--muted);font-size:8px;padding:3px 8px;border-radius:2px;font-family:'Montserrat',sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.bdup:hover{border-color:var(--gold);color:var(--gold);}
+.brp{background:none;border:none;color:var(--border);cursor:pointer;font-size:18px;transition:color .15s;}
+.brp:hover{color:var(--text);}
+.bap{width:100%;padding:12px;background:none;border:1.5px dashed rgba(201,169,110,.35);color:var(--gold);font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:3px;transition:all .2s;margin-top:4px;}
+.bap:hover{background:rgba(201,169,110,.07);border-style:solid;}
+.pkg-img-area{margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+.pkg-img-lbl{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.pkg-img-preview{width:100%;max-height:140px;object-fit:cover;border-radius:3px;display:block;margin-top:6px;}
+.tr{display:grid;grid-template-columns:140px 1fr;gap:9px;margin-bottom:8px;align-items:start;}
+.tr input,.tr textarea{font-size:12px;}
+.tr textarea{min-height:44px;}
+/* Contrast subsection */
+.contrast-group{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:16px;margin-bottom:10px;}
+.contrast-group-title{font-size:8px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.contrast-group-title::after{content:'';flex:1;height:1px;background:var(--border);}
+/* Preview panel */
+.preview-panel{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:24px 28px;margin-bottom:16px;}
+.preview-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.preview-panel-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);}
+.preview-page-nav{display:flex;gap:6px;align-items:center;}
+.pnav-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:2px;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:10px;transition:all .15s;}
+.pnav-btn:hover{border-color:var(--gold);color:var(--gold);}
+.pnav-info{font-size:10px;color:var(--muted);}
+#preview-container{position:relative;overflow:hidden;border-radius:3px;}
+/* Gen bar */
+.gen-bar{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--border);padding:14px 48px;display:flex;align-items:center;justify-content:space-between;margin-left:-48px;margin-right:-48px;margin-top:20px;}
+.btn-gen{background:var(--gold);color:#0E0E0C;border:none;padding:11px 32px;font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:3px;text-transform:uppercase;font-weight:700;cursor:pointer;border-radius:2px;transition:all .2s;display:flex;align-items:center;gap:9px;}
+.btn-gen:hover{background:var(--gold2);}
+.btn-gen:disabled{opacity:.45;cursor:default;}
+.spin{display:none;width:13px;height:13px;border:2px solid rgba(14,14,12,.3);border-top-color:#0E0E0C;border-radius:50%;animation:sp .8s linear infinite;}
+.spin.on{display:block;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.gen-hint{font-size:10px;color:var(--muted);}
+.pbar{width:100%;height:2px;background:var(--border);border-radius:2px;overflow:hidden;display:none;margin-top:6px;}
+.pfill{height:100%;background:var(--gold);width:0%;transition:width .4s;}
+.pbar.on{display:block;}
+/* Reposition modal */
+.repos-modal{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+.repos-modal.hide{display:none;}
+.repos-wrap{position:relative;overflow:hidden;border:2px solid var(--gold);border-radius:3px;cursor:crosshair;user-select:none;}
+.repos-wrap img{display:block;max-width:78vw;max-height:58vh;pointer-events:none;}
+.repos-crosshair{position:absolute;pointer-events:none;z-index:2;}
+.repos-crosshair::before,.repos-crosshair::after{content:'';position:absolute;background:rgba(201,169,110,.8);}
+.repos-crosshair::before{width:1px;height:20px;top:-10px;left:0;}
+.repos-crosshair::after{height:1px;width:20px;top:0;left:-10px;}
+.repos-hint{font-size:11px;color:rgba(255,255,255,.55);letter-spacing:.5px;font-family:'Montserrat',sans-serif;}
+.repos-actions{display:flex;gap:10px;}
+.repos-btn{padding:9px 22px;border:none;border-radius:2px;font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-weight:600;}
+.repos-apply{background:var(--gold);color:#0E0E0C;}
+.repos-cancel{background:rgba(255,255,255,.1);color:white;border:.5px solid rgba(255,255,255,.2);}
+.toast{position:fixed;bottom:26px;right:26px;background:var(--surface);color:var(--text);padding:10px 16px;border-radius:3px;font-size:11px;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;border-left:3px solid var(--gold);z-index:9999;}
+.toast.on{opacity:1;transform:translateY(0);}
+.pdf-page{width:794px;height:1123px;position:relative;overflow:hidden;font-family:'Montserrat',sans-serif;}
+
+@media print {
+  /* Hide all UI chrome */
+  .sidebar, .gen-bar, .section-card, .preview-panel-head,
+  .pnav-btn, .pnav-info, .toast, .repos-modal,
+  .btn-gen, .pbar, .nav-item { display:none !important; }
+
+  html, body { margin:0; padding:0; background:#fff; }
+
+  /* Each PDF page fills exactly one printed page */
+  .pdf-page {
+    width: 100% !important;
+    height: 100vh !important;
+    max-width: 794px;
+    max-height: 1123px;
+    overflow: hidden !important;
+    page-break-after: always;
+    break-after: page;
+    position: relative;
+  }
+
+  /* Gallery grid: never break inside a row or image block */
+  .pdf-page [style*="display:flex"][style*="margin-bottom"],
+  .pdf-page [style*="overflow:hidden"][style*="flex-shrink"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* All images within a gallery page must stay contained */
+  .pdf-page img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* No content can overflow page bounds */
+  * {
+    box-sizing: border-box;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Preview container scales to fill print area */
+  #preview-container {
+    width: 794px !important;
+    height: 1123px !important;
+    overflow: hidden !important;
+    transform: none !important;
+  }
+}
+
+/* Layout thumbnails */
+.layout-thumb{
+  position:relative;width:72px;height:50px;border:1.5px solid var(--border);
+  border-radius:3px;cursor:pointer;transition:all .15s;overflow:hidden;
+  background:var(--surface2);color:var(--muted);
+}
+.layout-thumb:hover{border-color:var(--gold);color:var(--text);}
+.layout-thumb.active{border-color:var(--gold);background:rgba(201,169,110,.08);color:var(--gold);}
+.lt-label{
+  position:absolute;bottom:3px;left:0;right:0;text-align:center;
+  font-size:7px;letter-spacing:1px;text-transform:uppercase;font-family:'Montserrat',sans-serif;
+}
+
+/* Free layout draggable blocks */
+.fblock{
+  position:absolute;cursor:move;user-select:none;
+  border:1px dashed rgba(201,169,110,.4);padding:4px 6px;border-radius:2px;
+  transition:border-color .15s;min-width:30px;
+}
+.fblock:hover{border-color:rgba(201,169,110,.9);}
+.fblock.selected{border-color:var(--gold);border-style:solid;}
+.fblock-resize{
+  position:absolute;bottom:-4px;right:-4px;width:10px;height:10px;
+  background:var(--gold);border-radius:1px;cursor:se-resize;opacity:.8;
+}
+/* Gallery editor */
+.gallery-editor{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:16px;margin-top:10px;}
+.gallery-grid-preview{display:grid;gap:4px;min-height:100px;}
+.gal-item{position:relative;background:var(--border);border-radius:3px;overflow:hidden;cursor:pointer;}
+.gal-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.gal-item-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.gal-item:hover .gal-item-overlay{opacity:1;}
+.gal-btn{background:rgba(201,169,110,.9);border:none;color:#0E0E0C;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+/* Range input */
+input[type=range]{accent-color:var(--gold);}
+/* Tab-like section for contrast */
+.ctab{display:flex;gap:2px;margin-bottom:14px;}
+.ctab-btn{flex:1;padding:7px 4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;border-radius:2px;transition:all .15s;}
+.ctab-btn.act{background:rgba(201,169,110,.15);border-color:var(--gold);color:var(--gold);}
+
+/* ════════════════════════════════════════════════
+   MOBILE / iOS — adaptação completa para celular
+   ════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── Layout geral ── */
+  .app { display:flex; flex-direction:column; min-height:100vh; }
+
+  /* ── Sidebar → top nav bar horizontal com scroll ── */
+  .sidebar {
+    position: fixed; top:0; left:0; right:0; z-index:200;
+    height: auto; width:100%;
+    flex-direction: row; flex-wrap: nowrap; align-items: center;
+    overflow-x: auto; overflow-y: hidden;
+    padding: 8px 10px 0 10px;
+    gap: 0;
+    border-right: none; border-bottom: 1px solid var(--border);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .sidebar-logo {
+    font-size: 16px; white-space: nowrap;
+    margin-bottom: 0; margin-right: 10px; padding-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .sidebar-sub, .nav-section { display: none; }
+  .nav-item {
+    flex-shrink: 0; white-space: nowrap;
+    font-size: 11px; padding: 8px 10px;
+    border-left: none !important;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    margin-bottom: 0; margin-right: 0;
+    background: none !important;
+  }
+  .nav-item.on, .nav-item:hover {
+    border-bottom-color: var(--gold) !important;
+    color: var(--text);
+  }
+  .nav-dot { display: none; }
+
+  /* ── Conteúdo principal ── */
+  .main {
+    padding: 72px 12px 100px 12px;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* ── Cards de seção ── */
+  .section-card { padding: 18px 14px; }
+
+  /* ── Grids → coluna única ── */
+  .g2, .g3 { grid-template-columns: 1fr !important; gap: 8px; }
+
+  /* ── Inputs grandes para toque (sem zoom no Safari) ── */
+  input[type=text],
+  input[type=email],
+  input[type=tel],
+  textarea,
+  select {
+    font-size: 16px !important;
+    padding: 12px 12px !important;
+    -webkit-appearance: none;
+    border-radius: 4px !important;
+  }
+  select { font-size: 16px !important; }
+
+  /* ── Sliders mais altos para toque ── */
+  input[type=range] { height: 32px; cursor: pointer; }
+
+  /* ── Upload zones — crítico iOS Safari ──
+     O Safari bloqueia input[file] quando um elemento com pointer-events:none
+     estiver por cima. Solução: aumentar zona, manter input com opacity 0.001. */
+  .uz {
+    min-height: 80px;
+    padding: 22px 16px;
+    -webkit-tap-highlight-color: rgba(201,169,110,0.2);
+    touch-action: manipulation;
+  }
+  .uz input[type=file] {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0.001 !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    -webkit-appearance: none;
+  }
+  .uz-i { pointer-events: none; font-size: 24px; }
+  .uz-l { pointer-events: none; font-size: 10px; }
+
+  /* ── Botões com área de toque mínima de 44px ── */
+  .bai {
+    padding: 10px 16px !important;
+    font-size: 10px !important;
+    min-height: 40px;
+    touch-action: manipulation;
+  }
+  .bap {
+    padding: 16px !important;
+    font-size: 10px !important;
+    min-height: 52px;
+  }
+  .btn-gen {
+    width: 100%;
+    justify-content: center;
+    padding: 16px 24px !important;
+    font-size: 11px !important;
+    min-height: 52px;
+    touch-action: manipulation;
+  }
+
+  /* ── Gen bar (barra de gerar PDF) ── */
+  .gen-bar {
+    margin-left: -12px; margin-right: -12px;
+    padding: 12px 16px;
+    flex-direction: column; gap: 10px;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+  }
+
+  /* ── Prévia: botões de navegação maiores ── */
+  .preview-panel { padding: 14px; }
+  .preview-panel-head { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .pnav-btn { padding: 8px 18px; font-size: 16px; min-width: 44px; min-height: 40px; }
+  .pnav-info { font-size: 12px; }
+
+  /* ── Layout thumbnails maiores para toque ── */
+  .layout-thumb { width: 70px; height: 50px; }
+  #layout-presets { grid-template-columns: repeat(4, 1fr) !important; gap: 4px; }
+
+  /* ── Toast: não sair da tela ── */
+  .toast { bottom: 90px; right: 12px; left: 12px; font-size: 12px; }
+
+  /* ── Modal de reposição ── */
+  .repos-modal { padding: 16px; gap: 12px; }
+  .repos-wrap img { max-width: 96vw !important; max-height: 48vh !important; }
+  .repos-hint { font-size: 12px; text-align: center; padding: 0 8px; }
+  .repos-btn { padding: 14px 22px; font-size: 12px; min-height: 48px; flex: 1; }
+  .repos-actions { width: 100%; gap: 10px; }
+
+  /* ── Package cards ── */
+  .pkg-card { padding: 16px 12px; }
+  .pkg-actions { position: static; margin-bottom: 8px; }
+
+  /* ── Aviso de PDF no mobile ── */
+  .mobile-pdf-notice {
+    display: block !important;
+    background: rgba(201,169,110,0.12);
+    border: 1px solid rgba(201,169,110,0.4);
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 11px;
+    color: var(--gold);
+    line-height: 1.6;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+}
+
+/* Esconde aviso de PDF no desktop */
+.mobile-pdf-notice { display: none; }
+
+/* Swatches de cor maiores no mobile */
+@media (max-width: 768px) {
+  .color-swatch { width: 36px; height: 36px; }
+  input[type=color] { width: 36px; height: 36px; }
+  .color-row { gap: 10px; }
+
+  /* Tabs de contraste com scroll horizontal */
+  .ctab { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .ctab-btn { flex-shrink: 0; padding: 9px 12px; font-size: 9px; min-height: 40px; }
+
+  /* Thumb dos blocos de layout de pacote */
+  #pkg-layout-presets { gap: 6px; }
+
+  /* Free canvas: desabilita drag no mobile (muito difícil com touch), mostra aviso */
+  #free-canvas { touch-action: none; }
+  .free-canvas-mobile-hint { display: block !important; }
+}
+.free-canvas-mobile-hint { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-logo">Proposta<br>Editorial</div>
+  <div class="sidebar-sub">Gerador v3</div>
+  <div class="nav-section">Seções</div>
+  <a class="nav-item on" href="#s1"><span class="nav-dot"></span>Fotógrafo</a>
+  <a class="nav-item" href="#s2"><span class="nav-dot"></span>Aparência</a>
+  <a class="nav-item" href="#s3"><span class="nav-dot"></span>Capa</a>
+  <a class="nav-item" href="#s4"><span class="nav-dot"></span>Pacotes</a>
+  <a class="nav-item" href="#s5"><span class="nav-dot"></span>Termos</a>
+  <a class="nav-item" href="#s6" onclick="setTimeout(rGallery,80)"><span class="nav-dot"></span>Galeria</a>
+  <a class="nav-item" href="#s7"><span class="nav-dot"></span>Contato</a>
+  <div class="nav-section">Prévia</div>
+  <a class="nav-item" href="#preview"><span class="nav-dot"></span>Ver prévia</a>
+</nav>
+
+<!-- Main -->
+<div class="main">
+
+<!-- 01 Fotógrafo -->
+<div class="section-card" id="s1">
+  <div class="section-head"><span class="section-num">01</span><span class="section-title">Dados do Fotógrafo</span></div>
+
+  <!-- Photographer identity toggle -->
+  <div style="display:flex;gap:4px;margin-bottom:16px;">
+    <button id="id-mode-text" onclick="setIdentityMode('text')"
+      style="flex:1;padding:7px 4px;background:rgba(201,169,110,.15);border:1px solid var(--gold);color:var(--gold);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;border-radius:2px;transition:all .15s;">
+      Nome & Título
+    </button>
+    <button id="id-mode-logo" onclick="setIdentityMode('logo')"
+      style="flex:1;padding:7px 4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;border-radius:2px;transition:all .15s;">
+      Logo PNG
+    </button>
+  </div>
+
+  <!-- Name & Title fields -->
+  <div id="id-text-fields">
+    <div class="g2">
+      <div class="f"><label>Nome / Estúdio</label><input type="text" id="f-name" value="Thales Fernandes" oninput="schedulePreview();if(coverLayoutMode==='free')fbSyncField('name',this.value);"></div>
+      <div class="f"><label>Título</label><input type="text" id="f-title" value="Fotógrafo" oninput="schedulePreview();if(coverLayoutMode==='free')initFreeCanvas();"></div>
+    </div>
+  </div>
+
+  <!-- Logo upload -->
+  <div id="id-logo-fields" style="display:none;">
+    <div class="f">
+      <label>Logo (PNG transparente recomendado)</label>
+      <label class="uz" id="uz-logo" for="inp-logo">
+        <input type="file" id="inp-logo" accept="image/*" onchange="loadLogoImg(this)" style="position:absolute;inset:0;opacity:0.001;cursor:pointer;width:100%;height:100%;font-size:16px;">
+        <div class="uz-i">＋</div>
+        <div class="uz-l">Clique para enviar a logo</div>
+      </label>
+      <img id="pv-logo" class="uprev" style="max-height:80px;object-fit:contain;background:transparent;">
+      <div id="logo-img-actions" style="display:none;margin-top:8px;gap:6px;flex-wrap:wrap;">
+        <div class="f" style="margin-bottom:0;">
+          <label>Altura da logo na capa (px)</label>
+          <input type="range" id="logo-height" min="30" max="200" value="80" oninput="document.getElementById('logo-h-val').textContent=this.value;schedulePreview();" style="width:100%;margin-top:6px;accent-color:var(--gold);">
+          <span id="logo-h-val" style="font-size:10px;color:var(--muted);">80</span>px
+        </div>
+        <button class="bai" onclick="removeLogoImg()">Remover logo</button>
+      </div>
+    </div>
+    <!-- Keep f-name/f-title hidden for compat with other builders -->
+    <input type="hidden" id="f-name" value="">
+    <input type="hidden" id="f-title" value="">
+  </div>
+
+  <div class="f"><label>Tagline / Slogan</label><input type="text" id="f-tagline" value="Capturing moments that last forever" oninput="schedulePreview();if(coverLayoutMode==='free')fbSyncField('tagline',this.value);"></div>
+  <div class="f"><label>Nome do cliente (capa)</label><input type="text" id="f-client" value="" placeholder="Ex: Noiva &amp; Noivo" oninput="schedulePreview();if(coverLayoutMode==='free')fbSyncField('client',this.value);"></div>
+  <div class="g2">
+    <div class="f">
+      <label>Tipo de serviço</label>
+      <select id="f-service-select" onchange="onServiceSelectChange(this.value)" style="font-family:'Montserrat',sans-serif;font-weight:300;font-size:13px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:9px 12px;outline:none;width:100%;cursor:pointer;">
+        <option value="">Personalizado</option>
+        <option value="gestante">Ensaio Gestante</option>
+        <option value="corporativo">Ensaio Corporativo</option>
+        <option value="ensaio">Ensaio Fotográfico</option>
+        <option value="quinze">Festa 15 Anos</option>
+        <option value="casamento">Casamento</option>
+        <option value="infantil">Aniversário Infantil</option>
+      </select>
+      <input type="hidden" id="f-service" value="">
+      <input type="text" id="f-service-custom" value="" placeholder="Digite o tipo de serviço"
+        style="display:none;margin-top:6px;"
+        oninput="document.getElementById('f-service').value=this.value;schedulePreview();if(coverLayoutMode==='free')fbSyncField('service',this.value);">
+    </div>
+    <div class="f"><label>Data do evento</label><input type="text" id="f-date" value="" placeholder="Ex: 14 de março de 2026" oninput="schedulePreview();"></div>
+  </div>
+  <!-- Extra custom text fields (added via free editor or here) -->
+  <div id="s1-extra-fields"></div>
+  <button class="bai" style="margin-top:10px;" onclick="fbAddCustomBlock()">+ Adicionar campo de texto</button>
+</div>
+
+<!-- 02 Aparência -->
+<div class="section-card" id="s2">
+  <div class="section-head"><span class="section-num">02</span><span class="section-title">Aparência & Cores</span></div>
+
+  <!-- Accent color -->
+  <div class="f">
+    <label>Cor de destaque</label>
+    <div class="color-row" id="color-swatches">
+      <div class="color-swatch active" style="background:#C9A96E" data-h="36" title="Dourado" onclick="setAccent(this)"></div>
+      <div class="color-swatch" style="background:#7FB0A0" data-h="168" title="Sage" onclick="setAccent(this)"></div>
+      <div class="color-swatch" style="background:#B07090" data-h="330" title="Rose" onclick="setAccent(this)"></div>
+      <div class="color-swatch" style="background:#8890C8" data-h="235" title="Lavanda" onclick="setAccent(this)"></div>
+      <div class="color-swatch" style="background:#D07060" data-h="10" title="Terracota" onclick="setAccent(this)"></div>
+      <div class="color-swatch" style="background:#90B870" data-h="100" title="Verde" onclick="setAccent(this)"></div>
+      <div class="color-swatch" style="background:#A0A0A0" data-h="0" title="Prata" onclick="setAccentGray(this)"></div>
+      <input type="color" value="#C9A96E" id="custom-color" title="Cor personalizada" oninput="setAccentCustom(this.value)">
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="f">
+      <label>Tema base</label>
+      <select id="theme" onchange="setTheme();schedulePreview()">
+        <option value="dark">Escuro (preto)</option>
+        <option value="cream">Creme (claro)</option>
+        <option value="forest">Floresta (verde escuro)</option>
+        <option value="charcoal">Carvão (cinza escuro)</option>
+        <option value="ivory">Marfim (off-white)</option>
+        <option value="wine">Vinho (bordô)</option>
+        <option value="navy">Azul Noite</option>
+        <option value="sand">Areia (bege)</option>
+        <option value="graphite">Grafite</option>
+      </select>
+    </div>
+    <div class="f">
+      <label>Opacidade do overlay — <span id="overlay-op-val">55</span>%</label>
+      <input type="range" id="overlay-opacity" min="0" max="95" value="55"
+        oninput="document.getElementById('overlay-op-val').textContent=this.value;schedulePreview()"
+        style="width:100%;margin-top:6px;accent-color:var(--gold);">
+    </div>
+  </div>
+  <!-- Gradient controls -->
+  <div style="margin-top:10px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;">
+    <div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Gradiente da capa</div>
+    <div class="g2">
+      <div class="f" style="margin:0;">
+        <label>Opacidade — <span id="grad-op-val">85</span>%</label>
+        <input type="range" id="grad-opacity" min="0" max="100" value="85"
+          oninput="document.getElementById('grad-op-val').textContent=this.value;schedulePreview()"
+          style="width:100%;margin-top:6px;accent-color:var(--gold);">
+      </div>
+      <div class="f" style="margin:0;">
+        <label>Extensão — <span id="grad-sp-val">100</span>%</label>
+        <input type="range" id="grad-spread" min="20" max="100" value="100"
+          oninput="document.getElementById('grad-sp-val').textContent=this.value;schedulePreview()"
+          style="width:100%;margin-top:6px;accent-color:var(--gold);">
+      </div>
+    </div>
+    <div class="f" style="margin-top:10px;margin-bottom:0;">
+      <label>Curva de transição</label>
+      <div style="display:flex;gap:4px;margin-top:6px;">
+        <button id="gcurve-soft" onclick="setGradCurve('soft',this)"
+          style="flex:1;padding:6px 4px;background:rgba(201,169,110,.15);border:1px solid var(--gold);color:var(--gold);font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;border-radius:2px;transition:all .15s;">
+          Suave
+        </button>
+        <button id="gcurve-mid" onclick="setGradCurve('mid',this)"
+          style="flex:1;padding:6px 4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;border-radius:2px;transition:all .15s;">
+          Padrão
+        </button>
+        <button id="gcurve-hard" onclick="setGradCurve('hard',this)"
+          style="flex:1;padding:6px 4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;border-radius:2px;transition:all .15s;">
+          Forte
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layout Visual Editor -->
+  <div style="margin-top:6px;padding-top:16px;border-top:1px solid var(--border);">
+    <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Layout da Capa</div>
+
+    <!-- Layout preset thumbnails -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;" id="layout-presets">
+
+      <!-- Row 1: Centralizado + Superior -->
+      <div class="layout-thumb" data-layout="centered" onclick="setCoverLayout('centered',this)" title="Centralizado">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:80%;">
+          <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
+          <div style="height:3px;background:currentColor;margin:2px auto;width:70%;border-radius:1px;"></div>
+          <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
+        </div>
+        <div class="lt-label">Central</div>
+      </div>
+      <div class="layout-thumb" data-layout="top" onclick="setCoverLayout('top',this)" title="Superior">
+        <div style="position:absolute;top:12%;left:50%;transform:translateX(-50%);text-align:center;width:80%;">
+          <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
+          <div style="height:3px;background:currentColor;margin:2px auto;width:70%;border-radius:1px;"></div>
+        </div>
+        <div class="lt-label">Superior</div>
+      </div>
+      <div class="layout-thumb" data-layout="top-left" onclick="setCoverLayout('top-left',this)" title="Superior Esquerda">
+        <div style="position:absolute;top:12%;left:8%;width:75%;">
+          <div style="height:2px;background:currentColor;margin:3px 0;width:50%;"></div>
+          <div style="height:3px;background:currentColor;margin:2px 0;width:70%;border-radius:1px;"></div>
+        </div>
+        <div class="lt-label">Sup. Esq.</div>
+      </div>
+      <div class="layout-thumb" data-layout="top-right" onclick="setCoverLayout('top-right',this)" title="Superior Direita">
+        <div style="position:absolute;top:12%;right:8%;width:75%;text-align:right;">
+          <div style="height:2px;background:currentColor;margin:3px 0 3px auto;width:50%;"></div>
+          <div style="height:3px;background:currentColor;margin:2px 0 2px auto;width:70%;border-radius:1px;"></div>
+        </div>
+        <div class="lt-label">Sup. Dir.</div>
+      </div>
+
+      <!-- Row 2: Base variações -->
+      <div class="layout-thumb active" data-layout="bottom" onclick="setCoverLayout('bottom',this)" title="Base">
+        <div style="position:absolute;bottom:12%;left:50%;transform:translateX(-50%);text-align:center;width:80%;">
+          <div style="height:3px;background:currentColor;margin:2px auto;width:70%;border-radius:1px;"></div>
+          <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
+        </div>
+        <div class="lt-label">Base</div>
+      </div>
+      <div class="layout-thumb" data-layout="bottom-left" onclick="setCoverLayout('bottom-left',this)" title="Base Esquerda">
+        <div style="position:absolute;bottom:12%;left:8%;width:75%;">
+          <div style="height:3px;background:currentColor;margin:2px 0;width:70%;border-radius:1px;"></div>
+          <div style="height:2px;background:currentColor;margin:3px 0;width:50%;"></div>
+        </div>
+        <div class="lt-label">Base Esq.</div>
+      </div>
+      <div class="layout-thumb" data-layout="bottom-right" onclick="setCoverLayout('bottom-right',this)" title="Base Direita">
+        <div style="position:absolute;bottom:12%;right:8%;width:75%;text-align:right;">
+          <div style="height:3px;background:currentColor;margin:2px 0 2px auto;width:70%;border-radius:1px;"></div>
+          <div style="height:2px;background:currentColor;margin:3px 0 3px auto;width:50%;"></div>
+        </div>
+        <div class="lt-label">Base Dir.</div>
+      </div>
+      <div class="layout-thumb" data-layout="free" onclick="setCoverLayout('free',this)" title="Livre">
+        <div style="position:absolute;top:30%;left:20%;font-size:9px;color:currentColor;opacity:.7;">Aa</div>
+        <div style="position:absolute;top:55%;left:40%;font-size:7px;color:currentColor;opacity:.5;">Aa</div>
+        <div style="position:absolute;bottom:18%;right:15%;font-size:6px;color:currentColor;opacity:.4;">Aa</div>
+        <div class="lt-label">Livre ✦</div>
+      </div>
+
+    </div>
+
+    <!-- Free layout editor -->
+    <div id="free-layout-editor" style="display:none;">
+      <!-- Selected block controls -->
+      <div id="fb-controls" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px 12px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+            <div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);white-space:nowrap;" id="fb-ctrl-label">Elemento</div>
+            <input type="text" id="fb-rename-inp" placeholder="Texto do bloco"
+              oninput="fbRenameBlock(this.value)"
+              style="flex:1;padding:4px 8px;font-size:12px;min-width:0;">
+          </div>
+          <div style="display:flex;gap:4px;margin-left:8px;flex-shrink:0;">
+            <button onclick="fbDuplicateBlock()" title="Duplicar bloco"
+              style="padding:4px 9px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:3px;cursor:pointer;font-size:11px;font-family:'Montserrat',sans-serif;transition:all .15s;"
+              onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">⊕</button>
+            <button id="fb-delete-btn" onclick="fbDeleteBlock()" title="Excluir bloco"
+              style="padding:4px 9px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:3px;cursor:pointer;font-size:11px;font-family:'Montserrat',sans-serif;transition:all .15s;"
+              onmouseover="this.style.borderColor='#c0392b';this.style.color='#c0392b'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">✕</button>
+          </div>
+        </div>
+        <!-- Row 1: size + position -->
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+          <div class="f" style="margin:0;flex:1;min-width:80px;">
+            <label>Tamanho (px)</label>
+            <input type="number" id="fb-size-px" min="6" max="200" value="12"
+              oninput="fbSetSize(parseInt(this.value))"
+              style="padding:6px 8px;font-size:13px;">
+          </div>
+          <div class="f" style="margin:0;flex:1;min-width:80px;">
+            <label>Posição X (%)</label>
+            <input type="number" id="fb-pos-x" min="-50" max="150" value="10"
+              oninput="fbSetPos('x',parseFloat(this.value))"
+              style="padding:6px 8px;font-size:13px;">
+          </div>
+          <div class="f" style="margin:0;flex:1;min-width:80px;">
+            <label>Posição Y (%)</label>
+            <input type="number" id="fb-pos-y" min="-20" max="120" value="40"
+              oninput="fbSetPos('y',parseFloat(this.value))"
+              style="padding:6px 8px;font-size:13px;">
+          </div>
+        </div>
+        <!-- Row 2: color + bold + italic -->
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="f" style="margin:0;">
+            <label>Cor do texto</label>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+              <div id="fb-col-accent" onclick="fbSetColor('accent')" title="Cor de destaque"
+                style="width:26px;height:26px;border-radius:3px;cursor:pointer;border:2px solid var(--gold);background:var(--gold);transition:all .15s;"></div>
+              <div id="fb-col-text" onclick="fbSetColor('text')" title="Texto principal"
+                style="width:26px;height:26px;border-radius:3px;cursor:pointer;border:2px solid var(--border);background:#F0EDE6;transition:all .15s;"></div>
+              <div id="fb-col-dim" onclick="fbSetColor('dim')" title="Texto secundário"
+                style="width:26px;height:26px;border-radius:3px;cursor:pointer;border:2px solid var(--border);background:rgba(240,237,230,0.55);transition:all .15s;"></div>
+              <div id="fb-col-white" onclick="fbSetColor('white')" title="Branco puro"
+                style="width:26px;height:26px;border-radius:3px;cursor:pointer;border:2px solid var(--border);background:#ffffff;transition:all .15s;"></div>
+              <div style="position:relative;width:26px;height:26px;" title="Cor personalizada">
+                <div id="fb-col-custom" style="width:26px;height:26px;border-radius:3px;cursor:pointer;border:2px solid var(--border);background:#C9A96E;overflow:hidden;">
+                  <input type="color" id="fb-col-custom-inp" value="#C9A96E"
+                    oninput="fbSetColor('custom',this.value)"
+                    style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;padding:0;border:none;">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="f" style="margin:0;">
+            <label>Estilo</label>
+            <div style="display:flex;gap:4px;margin-top:4px;">
+              <button id="fb-bold-btn" onclick="fbToggleBold()"
+                style="width:32px;height:26px;border-radius:3px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:Georgia,serif;transition:all .15s;">B</button>
+              <button id="fb-italic-btn" onclick="fbToggleItalic()"
+                style="width:32px;height:26px;border-radius:3px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:13px;cursor:pointer;font-family:Georgia,serif;font-style:italic;transition:all .15s;">I</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Canvas container — same scale system as cover-preview-inner -->
+      <div id="free-canvas-wrap" style="position:relative;border:1px solid var(--border);border-radius:3px;background:#111;width:100%;overflow:hidden;">
+        <!-- Aspect-ratio spacer so container has correct height -->
+        <div style="width:100%;aspect-ratio:794/1123;"></div>
+        <!-- The actual 794×1123 canvas, scaled down via CSS transform -->
+        <div id="free-canvas" style="position:absolute;top:0;left:0;width:794px;height:1123px;transform-origin:top left;background:var(--surface2);cursor:default;">
+          <div id="free-bg" style="position:absolute;inset:0;background-size:cover;background-position:center;opacity:.4;pointer-events:none;"></div>
+          <!-- Guide lines -->
+          <div id="fb-guide-v" style="position:absolute;left:50%;top:0;width:1px;height:100%;background:rgba(201,169,110,.3);pointer-events:none;display:none;transform:translateX(-0.5px);transition:background .1s,box-shadow .1s;"></div>
+          <div id="fb-guide-h" style="position:absolute;top:50%;left:0;width:100%;height:1px;background:rgba(201,169,110,.3);pointer-events:none;display:none;transform:translateY(-0.5px);transition:background .1s,box-shadow .1s;"></div>
+          <!-- blocks injected by JS -->
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+        <button class="bai" onclick="resetFreeLayout()">↺ Resetar posições</button>
+        <button class="bai" onclick="fbAddCustomBlock()">+ Nova caixa de texto</button>
+        <button onclick="fbConfirmLayout()"
+          style="padding:7px 18px;background:var(--gold);color:#0E0E0C;border:none;border-radius:3px;
+                 font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;
+                 font-weight:700;cursor:pointer;transition:background .2s;"
+          onmouseover="this.style.background='var(--gold2)'" onmouseout="this.style.background='var(--gold)'">
+          ✓ Confirmar layout
+        </button>
+        <div style="font-size:9px;color:var(--muted);line-height:1.5;padding-top:2px;">Duplo clique para editar · Del para excluir · Alt+drag direito para copiar · Ctrl+C/V para copiar</div>
+        <div class="free-canvas-mobile-hint" style="font-size:11px;color:var(--gold);line-height:1.6;width:100%;background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.3);border-radius:3px;padding:10px 12px;">
+          📱 No celular, use os campos <b>Posição X/Y</b> acima para mover os elementos. O drag funciona melhor no computador.
+        </div>
+      </div>
+    </div>
+
+    <!-- Pkg layout -->
+    <div style="margin-top:16px;">
+      <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Layout dos Pacotes</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pkg-layout-presets">
+        <div class="layout-thumb active" data-pkg="overlay" onclick="setPkgLayout('overlay',this)" title="Foto como background completo">
+          <div style="position:absolute;inset:0;background:rgba(255,255,255,.06);display:flex;align-items:flex-end;padding:5px;">
+            <div style="width:100%;"><div style="height:2px;background:currentColor;width:60%;margin-bottom:2px;"></div>
+            <div style="height:3px;background:currentColor;width:80%;border-radius:1px;"></div></div>
+          </div>
+          <div class="lt-label">Overlay</div>
+        </div>
+        <div class="layout-thumb" data-pkg="split-right" onclick="setPkgLayout('split-right',this)" title="Texto à esquerda, foto à direita">
+          <div style="position:absolute;inset:0;display:flex;">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:4px 5px;gap:2px;">
+              <div style="height:2px;background:currentColor;width:80%;"></div>
+              <div style="height:3px;background:currentColor;width:100%;border-radius:1px;"></div>
+              <div style="height:2px;background:currentColor;width:60%;"></div>
+            </div>
+            <div style="width:46%;background:rgba(255,255,255,.12);"></div>
+          </div>
+          <div class="lt-label">Texto | Foto</div>
+        </div>
+        <div class="layout-thumb" data-pkg="split-left" onclick="setPkgLayout('split-left',this)" title="Foto à esquerda, texto à direita">
+          <div style="position:absolute;inset:0;display:flex;">
+            <div style="width:46%;background:rgba(255,255,255,.12);"></div>
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:4px 5px;gap:2px;">
+              <div style="height:2px;background:currentColor;width:80%;"></div>
+              <div style="height:3px;background:currentColor;width:100%;border-radius:1px;"></div>
+              <div style="height:2px;background:currentColor;width:60%;"></div>
+            </div>
+          </div>
+          <div class="lt-label">Foto | Texto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- hidden selects kept for compat with builders -->
+  <input type="hidden" id="cover-layout" value="bottom">
+  <input type="hidden" id="pkg-layout" value="overlay">
+
+  <!-- Contrast PER SECTION -->
+  <div style="margin-top:6px;padding-top:16px;border-top:1px solid var(--border);">
+    <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Contraste do Texto — por Seção</div>
+    <p style="font-size:10px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Cada seção possui configurações independentes de sombra e contorno. Selecione a seção abaixo para editar.</p>
+
+    <div class="ctab" id="ctab">
+      <button class="ctab-btn act" onclick="selectCtab('cover',this)">Capa</button>
+      <button class="ctab-btn" onclick="selectCtab('pkg',this)">Pacotes</button>
+      <button class="ctab-btn" onclick="selectCtab('terms',this)">Termos</button>
+      <button class="ctab-btn" onclick="selectCtab('contact',this)">Contato</button>
+      <button class="ctab-btn" onclick="selectCtab('gallery',this)">Galeria</button>
+    </div>
+
+    <!-- Cover contrast -->
+    <div id="ct-cover" class="contrast-group">
+      <div class="contrast-group-title">Capa</div>
+      <div id="cg-cover"></div>
+    </div>
+    <div id="ct-pkg" class="contrast-group" style="display:none">
+      <div class="contrast-group-title">Pacotes</div>
+      <div id="cg-pkg"></div>
+    </div>
+    <div id="ct-terms" class="contrast-group" style="display:none">
+      <div class="contrast-group-title">Termos</div>
+      <div id="cg-terms"></div>
+    </div>
+    <div id="ct-contact" class="contrast-group" style="display:none">
+      <div class="contrast-group-title">Contato</div>
+      <div id="cg-contact"></div>
+    </div>
+    <div id="ct-gallery" class="contrast-group" style="display:none">
+      <div class="contrast-group-title">Galeria</div>
+      <div id="cg-gallery"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 03 Capa -->
+<div class="section-card" id="s3">
+  <div class="section-head"><span class="section-num">03</span><span class="section-title">Foto de Capa</span></div>
+
+  <!-- Inline cover preview — proporção A4, mesmo HTML do buildCoverPage() -->
+  <div id="cover-preview-wrap" style="position:relative;width:100%;aspect-ratio:794/1123;background:var(--surface2);border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:14px;">
+    <!-- Scaled render injected by updateCoverInlinePreview() -->
+    <div id="cover-preview-inner" style="position:absolute;top:0;left:0;width:794px;height:1123px;transform-origin:top left;pointer-events:none;"></div>
+    <!-- Upload overlay — label clicável (funciona no iOS Safari) -->
+    <label id="cover-upload-overlay" for="inp-cover" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;z-index:2;">
+      <div style="font-size:28px;opacity:.25;">＋</div>
+      <div style="font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">Clique para selecionar a foto de capa</div>
+    </label>
+    <input type="file" id="inp-cover" accept="image/*" onchange="loadImg(this,'cover','pv-cover')" style="display:none;">
+  </div>
+
+  <!-- Hidden img kept for compat with loadImg / removeImg -->
+  <img id="pv-cover" class="uprev" style="display:none!important;">
+
+  <div id="cover-img-actions" style="display:none;margin-top:8px;gap:6px;flex-wrap:wrap;">
+    <button class="bai" onclick="openRepos('cover',null)">✦ Editar posição / ponto focal</button>
+    <button class="bai" onclick="removeImg('cover','pv-cover','cover-img-actions')">Remover foto</button>
+  </div>
+</div>
+
+<!-- 04 Pacotes -->
+<div class="section-card" id="s4">
+  <div class="section-head"><span class="section-num">04</span><span class="section-title">Pacotes — cada um vira uma página completa</span></div>
+  <p style="font-size:11px;color:var(--muted);margin-bottom:16px;">Cada pacote tem sua própria página editorial. As fotos não são distorcidas — use o botão de posição para ajustar o enquadramento.</p>
+  <div id="pkgs"></div>
+  <button class="bap" onclick="addPkg()">+ Adicionar Pacote</button>
+</div>
+
+<!-- 05 Termos -->
+<div class="section-card" id="s5">
+  <div class="section-head"><span class="section-num">05</span><span class="section-title">Termos & Reserva</span></div>
+  <div class="f" style="margin-bottom:20px;">
+    <label>Foto decorativa da página Reserva (lado direito)</label>
+    <label class="uz" id="uz-reserva" for="inp-reserva">
+      <input type="file" id="inp-reserva" accept="image/*" onchange="loadImg(this,'reserva','pv-reserva')" style="position:absolute;inset:0;opacity:0.001;cursor:pointer;width:100%;height:100%;font-size:16px;">
+      <div class="uz-i">＋</div><div class="uz-l">Clique para adicionar foto</div>
+    </label>
+    <img id="pv-reserva" class="uprev" style="max-height:140px;object-fit:cover;">
+    <div id="reserva-img-actions" style="display:none;margin-top:8px;gap:6px;flex-wrap:wrap;">
+      <button class="bai" onclick="openRepos('reserva',null)">✦ Editar posição</button>
+      <button class="bai" onclick="removeImg('reserva','pv-reserva','reserva-img-actions')">Remover</button>
+    </div>
+  </div>
+  <div id="terms"></div>
+  <button class="bai" onclick="addTerm()" style="margin-top:8px;">+ Adicionar cláusula</button>
+</div>
+
+<!-- 06 Galeria -->
+<div class="section-card" id="s6">
+  <div class="section-head"><span class="section-num">06</span><span class="section-title">Galeria</span></div>
+
+  <div class="g2" style="margin-bottom:14px;">
+    <div class="f">
+      <label>Título da página</label>
+      <input type="text" id="gal-title" value="Galeria" oninput="schedulePreview()">
+    </div>
+    <div class="f">
+      <label>Subtítulo</label>
+      <input type="text" id="gal-subtitle" value="Momentos selecionados" oninput="schedulePreview()">
+    </div>
+  </div>
+
+  <div class="f" style="margin-bottom:16px;">
+    <label>Espaçamento entre fotos — <span id="gal-gap-val">5</span>px</label>
+    <input type="range" id="gal-gap" min="0" max="20" value="5"
+      oninput="document.getElementById('gal-gap-val').textContent=this.value;rGallery();schedulePreview()"
+      style="width:100%;margin-top:6px;accent-color:var(--gold);">
+  </div>
+
+  <!-- Layout rule info -->
+  <div style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:12px 14px;margin-bottom:14px;font-size:10px;color:var(--muted);line-height:1.8;">
+    <div style="color:var(--gold);font-size:8px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Regras de layout por página</div>
+    <div>• <b style="color:var(--text);">9 verticais</b> — 3 colunas × 3 linhas, todas mesma altura</div>
+    <div>• <b style="color:var(--text);">6 verticais + 1 horizontal</b> — horizontal ocupa linha inteira (topo, meio ou base)</div>
+    <div>• <b style="color:var(--text);">3 horizontais</b> — uma por linha, empilhadas</div>
+    <div style="margin-top:6px;font-size:9px;">Arraste as fotos para reordenar ⠿</div>
+  </div>
+
+  <div id="gal-editor"></div>
+
+  <label class="bap" for="inp-gal" style="margin-top:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;">+ Adicionar fotos à galeria</label>
+  <input type="file" id="inp-gal" accept="image/*" multiple style="display:none" onchange="loadGalPhotos(this)">
+
+  <!-- hidden cols kept for compat -->
+  <input type="hidden" id="gal-cols" value="3">
+</div>
+
+<!-- 07 Contato -->
+<div class="section-card" id="s7">
+  <div class="section-head"><span class="section-num">07</span><span class="section-title">Contato</span></div>
+  <div class="f">
+    <label>Foto de perfil</label>
+    <label class="uz" id="uz-prof" for="inp-prof" style="max-width:200px;">
+      <input type="file" id="inp-prof" accept="image/*" onchange="loadImg(this,'profile','pv-prof')" style="position:absolute;inset:0;opacity:0.001;cursor:pointer;width:100%;height:100%;font-size:16px;">
+      <div class="uz-i">＋</div><div class="uz-l">Foto de perfil</div>
+    </label>
+    <img id="pv-prof" class="uprev" style="max-width:200px;aspect-ratio:3/4;">
+    <div id="prof-img-actions" style="display:none;margin-top:8px;gap:6px;flex-wrap:wrap;">
+      <button class="bai" onclick="openRepos('profile',null)">✦ Editar posição</button>
+      <button class="bai" onclick="removeImg('profile','pv-prof','prof-img-actions')">Remover</button>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="f"><label>Endereço</label><input type="text" id="f-addr" value="Petrópolis / RJ" oninput="schedulePreview()"></div>
+    <div class="f"><label>Telefone / WhatsApp</label><input type="tel" id="f-phone" value="(24) 99999-0000" oninput="schedulePreview()"></div>
+    <div class="f"><label>E-mail</label><input type="email" id="f-email" value="contato@thales.foto" oninput="schedulePreview()"></div>
+    <div class="f"><label>Website</label><input type="text" id="f-web" value="www.thales.foto" oninput="schedulePreview()"></div>
+    <div class="f"><label>Instagram</label><input type="text" id="f-insta" value="@thalesfernandes.foto" oninput="schedulePreview()"></div>
+  </div>
+</div>
+
+<!-- Preview -->
+<div class="preview-panel" id="preview">
+  <div class="preview-panel-head">
+    <span class="preview-panel-title">Prévia em tempo real</span>
+    <div class="preview-page-nav">
+      <button class="pnav-btn" onclick="prevPage()">‹</button>
+      <span class="pnav-info" id="pnav-info">Página 1</span>
+      <button class="pnav-btn" onclick="nextPage()">›</button>
+    </div>
+  </div>
+  <div id="preview-container"></div>
+</div>
+
+<div style="height:60px"></div>
+<div class="gen-bar">
+  <div class="mobile-pdf-notice">⚠️ A geração de PDF é pesada para celulares.<br>Preencha aqui e <b>gere o PDF no computador</b>.</div>
+  <div>
+    <span class="gen-hint" id="gen-hint">Pronto para gerar</span>
+    <div class="pbar" id="pbar"><div class="pfill" id="pfill"></div></div>
+  </div>
+  <button class="btn-gen" id="btn-gen" onclick="generatePDF()"><span class="spin" id="spin"></span>Gerar PDF</button>
+</div>
+</div><!-- /main -->
+</div><!-- /app -->
+<div class="toast" id="toast"></div>
+
+<!-- Reposition modal -->
+<div class="repos-modal hide" id="repos-modal">
+  <div class="repos-hint">Toque (ou clique) para definir o ponto focal</div>
+  <div class="repos-wrap" id="repos-wrap"
+    onclick="applyRepos(event)"
+    ontouchmove="applyRepos(event);event.preventDefault();"
+    ontouchend="applyRepos(event);event.preventDefault();"
+    style="touch-action:none;">
+    <img id="repos-img" src="" alt="">
+    <div class="repos-crosshair" id="repos-cross" style="left:50%;top:50%"></div>
+  </div>
+  <div class="repos-actions">
+    <button class="repos-btn repos-apply" onclick="confirmRepos()">✓ Confirmar</button>
+    <button class="repos-btn repos-cancel" onclick="closeRepos()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+// Suppress benign ResizeObserver loop notifications (browser warning, not a real error)
+window.addEventListener('error', function(e){
+  if(e.message && e.message.includes('ResizeObserver')) e.stopImmediatePropagation();
+});
+// ── State ────────────────────────────────────────────────────────────────────
+var imgs = {};
+var identityMode = 'text'; // 'text' | 'logo'
+
+function setIdentityMode(mode) {
+  identityMode = mode;
+  document.getElementById('id-text-fields').style.display = mode==='text' ? 'block' : 'none';
+  document.getElementById('id-logo-fields').style.display = mode==='logo'  ? 'block' : 'none';
+  var bt = document.getElementById('id-mode-text');
+  var bl = document.getElementById('id-mode-logo');
+  if(mode==='text'){
+    bt.style.background='rgba(201,169,110,.15)'; bt.style.borderColor='var(--gold)'; bt.style.color='var(--gold)';
+    bl.style.background='var(--surface2)'; bl.style.borderColor='var(--border)'; bl.style.color='var(--muted)';
+  } else {
+    bl.style.background='rgba(201,169,110,.15)'; bl.style.borderColor='var(--gold)'; bl.style.color='var(--gold)';
+    bt.style.background='var(--surface2)'; bt.style.borderColor='var(--border)'; bt.style.color='var(--muted)';
+  }
+  schedulePreview();
+}
+
+function loadLogoImg(inp) {
+  const f=inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    imgs.logo=e.target.result;
+    const pv=document.getElementById('pv-logo');
+    if(pv){pv.src=e.target.result;pv.classList.add('on');}
+    const uz=document.getElementById('uz-logo'); if(uz) uz.style.display='none';
+    const act=document.getElementById('logo-img-actions'); if(act) act.style.display='flex';
+    schedulePreview();
+  };
+  r.readAsDataURL(f);
+}
+
+function removeLogoImg() {
+  delete imgs.logo;
+  const pv=document.getElementById('pv-logo'); if(pv){pv.src='';pv.classList.remove('on');}
+  const uz=document.getElementById('uz-logo'); if(uz) uz.style.display='flex';
+  const act=document.getElementById('logo-img-actions'); if(act) act.style.display='none';
+  schedulePreview();
+}
+
+// Returns the photographer identity block HTML for page builders
+function photographerBlock(accent, fgd, TS_ATTR, logoMaxH) {
+  if(identityMode==='logo' && imgs.logo){
+    const h = parseInt(document.getElementById('logo-height')?.value||50);
+    return `<img src="${imgs.logo}" style="height:${logoMaxH||h}px;width:auto;max-height:${logoMaxH||h}px;display:block;object-fit:contain;">`;
+  }
+  const name=gv('f-name'), title=gv('f-title');
+  if(!name && !title) return '';
+  return `<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:${accent};${TS_ATTR}">${name}</div>
+    <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:2px;color:${fgd};margin-top:4px;text-transform:uppercase;${TS_ATTR}">${title}</div>`;
+}
+var coverImgPos = '50% 50%';
+var profileImgPos = '50% 50%';
+var reservaImgPos = '50% 50%';
+var accentH = 36, accentSat = 55, accentLit = 62;
+var accentHex = '#C9A96E';
+var themeColors = { bg:'#0E0E0C', text:'#F0EDE6', textDim:'rgba(240,237,230,0.65)' };
+var currentPage = 0;
+// Gallery photos
+var galPhotos = []; // [{src, pos:'50% 50%'}]
+
+// Per-section contrast settings
+var contrastSections = {
+  cover:   { shadowColor:'black', type:'none', opacity:60, blur:18, outlineW:0, outlineColor:'#000000' },
+  pkg:     { shadowColor:'black', type:'none', opacity:60, blur:18, outlineW:0, outlineColor:'#000000' },
+  terms:   { shadowColor:'black', type:'none', opacity:60, blur:18, outlineW:0, outlineColor:'#000000' },
+  contact: { shadowColor:'black', type:'none', opacity:60, blur:18, outlineW:0, outlineColor:'#000000' },
+  gallery: { shadowColor:'black', type:'none', opacity:60, blur:18, outlineW:0, outlineColor:'#000000' },
+};
+var activeCtab = 'cover';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function gv(id){ return (document.getElementById(id)?.value||'').trim(); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),3000); }
+function setP(n){ document.getElementById('pfill').style.width=n+'%'; }
+
+function loadImg(inp, key, prevId) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    imgs[key] = e.target.result;
+    const pv = document.getElementById(prevId);
+    if (pv) { pv.src = e.target.result; pv.classList.add('on'); }
+    // Show actions row
+    const actEl = document.getElementById(key==='cover'?'cover-img-actions':(key==='profile'?'prof-img-actions':'reserva-img-actions'));
+    if (actEl) actEl.style.display='flex';
+    // Hide upload zone / overlay
+    if(key==='cover'){
+      const ov=document.getElementById('cover-upload-overlay'); if(ov) ov.style.display='none';
+    } else {
+      const uzId = key==='profile'?'uz-prof':'uz-reserva';
+      const uz = document.getElementById(uzId); if(uz) uz.style.display='none';
+    }
+    schedulePreview();
+    // Update free canvas background if visible
+    if (coverLayoutMode === 'free') initFreeCanvas();
+  };
+  r.readAsDataURL(f);
+}
+
+function removeImg(key, prevId, actionsId) {
+  delete imgs[key];
+  const pv = document.getElementById(prevId); if(pv){pv.src='';pv.classList.remove('on');}
+  const act = document.getElementById(actionsId); if(act) act.style.display='none';
+  // For cover: show the upload overlay; for others: show the upload zone
+  if(key==='cover'){
+    const ov=document.getElementById('cover-upload-overlay'); if(ov) ov.style.display='flex';
+    coverImgPos = '50% 50%';
+  } else {
+    const uzId = key==='profile'?'uz-prof':'uz-reserva';
+    const uz = document.getElementById(uzId); if(uz) uz.style.display='flex';
+  }
+  schedulePreview();
+}
+
+// ── Color system ──────────────────────────────────────────────────────────────
+function setAccent(el) {
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  accentH = parseInt(el.dataset.h); accentSat = 55; accentLit = 62;
+  accentHex = el.style.background;
+  schedulePreview();
+}
+function setAccentGray(el) {
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  accentH = 0; accentSat = 0; accentLit = 65; accentHex = '#A8A8A8';
+  schedulePreview();
+}
+function setAccentCustom(hex) {
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+  accentHex = hex;
+  const r=parseInt(hex.slice(1,3),16)/255, g=parseInt(hex.slice(3,5),16)/255, b=parseInt(hex.slice(5,7),16)/255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h,s,l=(max+min)/2;
+  if(max!==min){
+    const d=max-min; s=l>.5?d/(2-max-min):d/(max+min);
+    switch(max){ case r:h=((g-b)/d+(g<b?6:0))/6;break; case g:h=((b-r)/d+2)/6;break; case b:h=((r-g)/d+4)/6;break; }
+    accentH=Math.round(h*360); accentSat=Math.round(s*100); accentLit=Math.round(l*100);
+  }
+  schedulePreview();
+}
+
+function setTheme() {
+  const t = gv('theme');
+  if(t==='dark')     themeColors={ bg:'#0E0E0C', text:'#F0EDE6', textDim:'rgba(240,237,230,0.6)' };
+  if(t==='cream')    themeColors={ bg:'#F5F0E8', text:'#1C1A16', textDim:'rgba(28,26,22,0.6)' };
+  if(t==='forest')   themeColors={ bg:'#0D1A14', text:'#E8EDE6', textDim:'rgba(232,237,230,0.6)' };
+  if(t==='charcoal') themeColors={ bg:'#1E1E1E', text:'#EFEFEF', textDim:'rgba(239,239,239,0.6)' };
+  if(t==='ivory')    themeColors={ bg:'#FAF7F2', text:'#2A2520', textDim:'rgba(42,37,32,0.6)' };
+  if(t==='wine')     themeColors={ bg:'#1A0810', text:'#F2E8EC', textDim:'rgba(242,232,236,0.6)' };
+  if(t==='navy')     themeColors={ bg:'#0A0F1E', text:'#E8EDF5', textDim:'rgba(232,237,245,0.6)' };
+  if(t==='sand')     themeColors={ bg:'#EDE5D8', text:'#2C2418', textDim:'rgba(44,36,24,0.6)' };
+  if(t==='graphite') themeColors={ bg:'#2C2C2C', text:'#F0F0F0', textDim:'rgba(240,240,240,0.6)' };
+}
+
+// ── Layout system ─────────────────────────────────────────────────────────────
+var coverLayoutMode = 'bottom';
+
+// Free layout — each key maps to a block.
+// Linked blocks (service/client/tagline/name) read text from DOM fields.
+// Custom blocks store text directly in .text property.
+var freeLayout = {
+  service: { x:10, y:37, fs:10,  color:'accent', bold:false, italic:false },
+  client:  { x:8,  y:43, fs:64,  color:'text',   bold:false, italic:false },
+  tagline: { x:10, y:56, fs:11,  color:'dim',    bold:false, italic:false },
+  name:    { x:10, y:77, fs:22,  color:'accent', bold:false, italic:true  },
+};
+var fbSelected = null;
+var fbDragging = null;
+var _fbCustomId = 0; // counter for custom block keys
+
+// Default reset state (only base 4)
+var fbDefaults = {
+  service: { x:10, y:37, fs:10,  color:'accent', bold:false, italic:false },
+  client:  { x:8,  y:43, fs:64,  color:'text',   bold:false, italic:false },
+  tagline: { x:10, y:56, fs:11,  color:'dim',    bold:false, italic:false },
+  name:    { x:10, y:77, fs:22,  color:'accent', bold:false, italic:true  },
+};
+
+// Base (linked) block keys — cannot be deleted, text comes from DOM
+var FB_BASE_KEYS = ['service','client','tagline','name'];
+
+// Field IDs linked to base blocks
+var FB_FIELD_MAP = { service:'f-service', client:'f-client', tagline:'f-tagline', name:'f-name' };
+
+// Labels for base blocks
+var FB_BASE_LABELS = { service:'Serviço', client:'Cliente', tagline:'Tagline', name:'Fotógrafo' };
+
+// Per-block font config (base blocks only; custom blocks use Montserrat)
+var fbConfig = {
+  service: { style:'font-family:Montserrat,sans-serif;letter-spacing:4px;text-transform:uppercase;' },
+  client:  { style:'font-family:"Cormorant Garamond",serif;font-weight:300;' },
+  tagline: { style:'font-family:Montserrat,sans-serif;letter-spacing:2px;font-weight:300;' },
+  name:    { style:'font-family:"Cormorant Garamond",serif;font-style:italic;' },
+};
+
+// Get display text for a block key
+function fbGetText(key) {
+  if(FB_FIELD_MAP[key]) return gv(FB_FIELD_MAP[key]) || FB_BASE_LABELS[key];
+  return freeLayout[key]?.text || 'Novo texto';
+}
+
+// Get label (shown in header) for a block
+function fbGetLabel(key) {
+  if(FB_BASE_LABELS[key]) return FB_BASE_LABELS[key];
+  return freeLayout[key]?.label || 'Personalizado';
+}
+
+// Get font style string for a block
+function fbGetStyle(key) {
+  if(fbConfig[key]) return fbConfig[key].style;
+  return 'font-family:Montserrat,sans-serif;letter-spacing:1px;';
+}
+
+// Scale factor: canvas (400px wide) vs PDF (794px wide)
+var FB_SCALE = 400/794;
+
+function setCoverLayout(mode, el) {
+  coverLayoutMode = mode;
+  // Walk up to find the actual .layout-thumb in case a child element was clicked
+  while(el && !el.classList.contains('layout-thumb')) el = el.parentElement;
+  document.querySelectorAll('#layout-presets .layout-thumb').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const freeEd = document.getElementById('free-layout-editor');
+  if(freeEd) freeEd.style.display = mode==='free' ? 'block' : 'none';
+  if(mode==='free') initFreeCanvas();
+  schedulePreview();
+}
+
+function setPkgLayout(mode, el) {
+  const inp = document.getElementById('pkg-layout');
+  if(inp) inp.value = mode;
+  while(el && !el.classList.contains('layout-thumb')) el = el.parentElement;
+  document.querySelectorAll('#pkg-layout-presets .layout-thumb').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  schedulePreview();
+}
+
+function resetFreeLayout() {
+  freeLayout = JSON.parse(JSON.stringify(fbDefaults));
+  fbSelected = null;
+  _fbCustomId = 0;
+  initFreeCanvas();
+  fbRenderExtraFields();
+  schedulePreview();
+}
+
+function fbSelectBlock(key) {
+  fbSelected = key;
+  document.querySelectorAll('.fblock').forEach(b=>{
+    b.style.outline = b.dataset.key===key ? '2px solid rgba(201,169,110,.9)' : '1px dashed rgba(201,169,110,.3)';
+    b.style.zIndex  = b.dataset.key===key ? '10' : '1';
+  });
+  const ctrl = document.getElementById('fb-controls');
+  if(ctrl) ctrl.style.display='block';
+  const pos = freeLayout[key];
+  // Label
+  document.getElementById('fb-ctrl-label').textContent = fbGetLabel(key);
+  // Rename input: shows current text; placeholder shows label
+  const ri = document.getElementById('fb-rename-inp');
+  if(ri){
+    ri.value = FB_BASE_KEYS.includes(key) ? fbGetText(key) : (pos.text||'');
+    ri.placeholder = fbGetLabel(key);
+  }
+  // Delete button: disabled for base blocks
+  const db = document.getElementById('fb-delete-btn');
+  if(db){ db.disabled = FB_BASE_KEYS.includes(key); db.style.opacity = FB_BASE_KEYS.includes(key)?'0.3':'1'; }
+  // Size/pos
+  document.getElementById('fb-size-px').value = Math.round(pos.fs);
+  document.getElementById('fb-pos-x').value   = Math.round(pos.x);
+  document.getElementById('fb-pos-y').value   = Math.round(pos.y);
+  // Sync color swatches
+  ['accent','text','dim','white','custom'].forEach(c=>{
+    const el=document.getElementById('fb-col-'+c);
+    if(el) el.style.outline = (pos.color===c||(!['accent','text','dim','white'].includes(pos.color)&&c==='custom')) ? '2px solid var(--gold)' : '2px solid var(--border)';
+  });
+  if(pos.color && !['accent','text','dim','white'].includes(pos.color)){
+    const ci=document.getElementById('fb-col-custom-inp'); if(ci) ci.value=pos.color;
+    const cd=document.getElementById('fb-col-custom'); if(cd) cd.style.background=pos.color;
+  }
+  // Sync bold/italic buttons
+  const bb=document.getElementById('fb-bold-btn'), ib=document.getElementById('fb-italic-btn');
+  if(bb){ bb.style.background=pos.bold?'rgba(201,169,110,.25)':'var(--surface2)'; bb.style.borderColor=pos.bold?'var(--gold)':'var(--border)'; bb.style.color=pos.bold?'var(--gold)':'var(--muted)'; }
+  if(ib){ ib.style.background=pos.italic?'rgba(201,169,110,.25)':'var(--surface2)'; ib.style.borderColor=pos.italic?'var(--gold)':'var(--border)'; ib.style.color=pos.italic?'var(--gold)':'var(--muted)'; }
+}
+
+function fbSetSize(pxVal) {
+  if(!fbSelected||isNaN(pxVal)||pxVal<4) return;
+  freeLayout[fbSelected].fs = pxVal;
+  const el=document.getElementById('fb-'+fbSelected);
+  if(el){ const span=el.querySelector('span'); if(span) span.style.fontSize=pxVal+'px'; }
+  schedulePreview();
+}
+
+function fbSetPos(axis, val) {
+  if(!fbSelected||isNaN(val)) return;
+  freeLayout[fbSelected][axis] = val;
+  const el=document.getElementById('fb-'+fbSelected);
+  if(el){
+    if(axis==='x') el.style.left=val+'%';
+    else el.style.top=val+'%';
+  }
+  schedulePreview();
+}
+
+// Resolve named color token → actual CSS color for canvas preview
+function fbResolveColor(token) {
+  if(!token||token==='accent') return getAccentColor();
+  if(token==='text')   return themeColors.text||'#F0EDE6';
+  if(token==='dim')    return themeColors.textDim||'rgba(240,237,230,0.6)';
+  if(token==='white')  return '#ffffff';
+  return token; // custom hex
+}
+
+function fbSetColor(token, customHex) {
+  if(!fbSelected) return;
+  freeLayout[fbSelected].color = (token==='custom' && customHex) ? customHex : token;
+  // Update canvas span color immediately
+  const el=document.getElementById('fb-'+fbSelected);
+  if(el){ const span=el.querySelector('span'); if(span) span.style.color=fbResolveColor(freeLayout[fbSelected].color); }
+  // Update custom swatch bg
+  if(token==='custom'&&customHex){
+    const cd=document.getElementById('fb-col-custom'); if(cd) cd.style.background=customHex;
+  }
+  fbSelectBlock(fbSelected); // re-sync swatch outlines
+  schedulePreview();
+}
+
+function fbToggleBold() {
+  if(!fbSelected) return;
+  freeLayout[fbSelected].bold = !freeLayout[fbSelected].bold;
+  const el=document.getElementById('fb-'+fbSelected);
+  if(el){ const span=el.querySelector('span'); if(span) span.style.fontWeight=freeLayout[fbSelected].bold?'700':''; }
+  fbSelectBlock(fbSelected);
+  schedulePreview();
+}
+
+function fbToggleItalic() {
+  if(!fbSelected) return;
+  freeLayout[fbSelected].italic = !freeLayout[fbSelected].italic;
+  const el=document.getElementById('fb-'+fbSelected);
+  if(el){ const span=el.querySelector('span'); if(span) span.style.fontStyle=freeLayout[fbSelected].italic?'italic':'normal'; }
+  fbSelectBlock(fbSelected);
+  schedulePreview();
+}
+
+// Rename: for base blocks → update linked DOM field; for custom → update .text and .label
+function fbRenameBlock(val) {
+  if(!fbSelected) return;
+  if(FB_BASE_KEYS.includes(fbSelected)){
+    const fieldId = FB_FIELD_MAP[fbSelected];
+    const inp = document.getElementById(fieldId);
+    if(inp){ inp.value = val; }
+  } else {
+    freeLayout[fbSelected].text  = val;
+    freeLayout[fbSelected].label = val || 'Personalizado';
+    // Update s1 extra field input
+    const s1inp = document.getElementById('s1-extra-'+fbSelected);
+    if(s1inp) s1inp.value = val;
+  }
+  // Update canvas span text live
+  const el=document.getElementById('fb-'+fbSelected);
+  if(el){ const span=el.querySelector('span'); if(span) span.textContent=val||fbGetLabel(fbSelected); }
+  schedulePreview();
+}
+
+// Sync canvas span when a base DOM field changes
+function fbSyncField(key, val) {
+  const el=document.getElementById('fb-'+key);
+  if(el){ const span=el.querySelector('span'); if(span) span.textContent=val||fbGetLabel(key); }
+  schedulePreview();
+}
+
+// Duplicate the currently selected block
+function fbDuplicateBlock() {
+  if(!fbSelected||!freeLayout[fbSelected]) return;
+  const src = freeLayout[fbSelected];
+  const newKey = 'custom_'+(++_fbCustomId);
+  freeLayout[newKey] = Object.assign({}, src, {
+    x: src.x+3, y: src.y+5,
+    text:  FB_BASE_KEYS.includes(fbSelected) ? fbGetText(fbSelected) : (src.text||''),
+    label: (FB_BASE_KEYS.includes(fbSelected) ? fbGetLabel(fbSelected) : (src.label||'')) + ' (cópia)',
+  });
+  initFreeCanvas();
+  fbRenderExtraFields();
+  fbSelectBlock(newKey);
+  schedulePreview();
+}
+
+// Delete the currently selected block (custom only)
+function fbDeleteBlock() {
+  if(!fbSelected||FB_BASE_KEYS.includes(fbSelected)) return;
+  delete freeLayout[fbSelected];
+  fbSelected = null;
+  document.getElementById('fb-controls').style.display='none';
+  initFreeCanvas();
+  fbRenderExtraFields();
+  schedulePreview();
+}
+
+// Add a new blank custom text block
+function fbAddCustomBlock() {
+  const newKey = 'custom_'+(++_fbCustomId);
+  freeLayout[newKey] = { x:10, y:50, fs:16, color:'text', bold:false, italic:false, text:'Novo texto', label:'Personalizado' };
+  initFreeCanvas();
+  fbRenderExtraFields();
+  if(coverLayoutMode==='free') fbSelectBlock(newKey);
+  schedulePreview();
+}
+
+// Render extra (custom) fields in section 01
+function fbRenderExtraFields() {
+  const container = document.getElementById('s1-extra-fields');
+  if(!container) return;
+  const customKeys = Object.keys(freeLayout).filter(k=>!FB_BASE_KEYS.includes(k));
+  if(!customKeys.length){ container.innerHTML=''; return; }
+  container.innerHTML = customKeys.map(k=>`
+    <div class="f" style="display:flex;gap:6px;align-items:flex-end;margin-top:10px;">
+      <div style="flex:1;">
+        <label>${freeLayout[k].label||'Personalizado'}</label>
+        <input type="text" id="s1-extra-${k}" value="${esc(freeLayout[k].text||'')}" placeholder="Texto..."
+          oninput="freeLayout['${k}'].text=this.value;freeLayout['${k}'].label=this.value||'Personalizado';fbSyncField('${k}',this.value);">
+      </div>
+      <button class="brm" onclick="fbSelected='${k}';fbDeleteBlock();" title="Remover" style="margin-bottom:2px;">×</button>
+    </div>`).join('');
+}
+
+// Scale the 794×1123 free canvas to fit its wrapper — same system as cover-preview-inner
+function fbScaleCanvas() {
+  const wrap = document.getElementById('free-canvas-wrap');
+  const canvas = document.getElementById('free-canvas');
+  if(!wrap || !canvas) return;
+  const displayW = wrap.clientWidth || wrap.getBoundingClientRect().width || 400;
+  const scale = displayW / 794;
+  canvas.style.transform = `scale(${scale})`;
+}
+
+// ── Preview timer — declared here so fbConfirmLayout can cancel it ─────────────
+var previewTimer = null;
+
+// ── Confirm layout — forces immediate preview update ──────────────────────────
+function fbConfirmLayout() {
+  // Cancel any pending schedulePreview so it doesn't overwrite our result
+  clearTimeout(previewTimer);
+  currentPage = 0;
+  setTheme();
+  renderPreview();
+  updateCoverInlinePreview();
+  toast('Layout da capa atualizado!');
+  // Scroll to the inline cover preview in section 03 so the user sees the result
+  const s3 = document.getElementById('s3');
+  if(s3) s3.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── Clipboard for Ctrl+C / Ctrl+V ─────────────────────────────────────────────
+var fbClipboard = null;
+
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────────
+document.addEventListener('keydown', e=>{
+  // Ignore when focus is inside any input/textarea
+  const tag = document.activeElement?.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  // Only active when free canvas is visible
+  if(coverLayoutMode !== 'free') return;
+
+  if(e.key==='Delete'||e.key==='Backspace'){
+    if(fbSelected && !FB_BASE_KEYS.includes(fbSelected)){
+      e.preventDefault();
+      fbDeleteBlock();
+    }
+  }
+  if((e.ctrlKey||e.metaKey) && e.key==='c'){
+    if(fbSelected && freeLayout[fbSelected]){
+      fbClipboard = JSON.parse(JSON.stringify(freeLayout[fbSelected]));
+      // For base blocks, store resolved text
+      if(FB_BASE_KEYS.includes(fbSelected)) fbClipboard.text = fbGetText(fbSelected);
+      toast('Copiado!');
+    }
+  }
+  if((e.ctrlKey||e.metaKey) && e.key==='v'){
+    if(fbClipboard){
+      e.preventDefault();
+      const newKey = 'custom_'+(++_fbCustomId);
+      freeLayout[newKey] = Object.assign({}, fbClipboard, {
+        x: fbClipboard.x+4, y: fbClipboard.y+4,
+        label: (fbClipboard.label||'Personalizado')+' (cópia)',
+      });
+      initFreeCanvas();
+      fbRenderExtraFields();
+      fbSelectBlock(newKey);
+      schedulePreview();
+    }
+  }
+});
+
+// ── Inline rename on double-click ─────────────────────────────────────────────
+function fbStartInlineRename(key, blockEl) {
+  const span = blockEl.querySelector('span');
+  if(!span) return;
+  const currentText = span.textContent;
+
+  // Create input overlay
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = currentText;
+  inp.style.cssText = `
+    position:absolute;inset:0;width:100%;box-sizing:border-box;
+    background:rgba(14,14,12,.85);color:var(--text);
+    border:1px solid var(--gold);border-radius:2px;
+    padding:2px 5px;font-size:${span.style.fontSize};
+    font-family:${span.style.fontFamily||'Montserrat,sans-serif'};
+    outline:none;z-index:20;`;
+  blockEl.style.position = 'absolute';
+  blockEl.appendChild(inp);
+  span.style.visibility = 'hidden';
+  inp.focus();
+  inp.select();
+
+  const confirm = ()=>{
+    const val = inp.value.trim() || currentText;
+    span.style.visibility = '';
+    inp.remove();
+    // Apply via existing rename function
+    fbSelected = key;
+    fbRenameBlock(val);
+    // Also sync the sidebar rename input
+    const ri = document.getElementById('fb-rename-inp');
+    if(ri) ri.value = val;
+  };
+
+  inp.addEventListener('keydown', e2=>{
+    if(e2.key==='Enter'){ e2.preventDefault(); confirm(); }
+    if(e2.key==='Escape'){ span.style.visibility=''; inp.remove(); }
+    e2.stopPropagation(); // prevent Delete shortcut while typing
+  });
+  inp.addEventListener('blur', confirm);
+}
+
+function initFreeCanvas() {
+  const canvas = document.getElementById('free-canvas');
+  if(!canvas) return;
+
+  // Apply CSS scale so the 794px canvas fits inside its wrapper
+  fbScaleCanvas();
+
+  const bgEl = document.getElementById('free-bg');
+  if(bgEl) bgEl.style.backgroundImage = imgs.cover ? `url('${imgs.cover}')` : 'none';
+
+  canvas.querySelectorAll('.fblock').forEach(b=>b.remove());
+
+  Object.keys(freeLayout).forEach(key=>{
+    const pos = freeLayout[key];
+    // Use real PDF font size — no FB_SCALE conversion needed since canvas is now 794px wide
+    const resolvedColor = fbResolveColor(pos.color);
+    const styleBase = fbGetStyle(key);
+    const text = fbGetText(key);
+
+    const el=document.createElement('div');
+    el.className='fblock';
+    el.id='fb-'+key;
+    el.dataset.key=key;
+    // translateY(-50%) matches buildCoverPage so the anchor point is identical
+    el.style.cssText=`position:absolute;left:${pos.x}%;top:${pos.y}%;transform:translateY(-50%);cursor:move;
+      outline:1px dashed rgba(201,169,110,.3);padding:3px 5px;border-radius:2px;
+      white-space:nowrap;user-select:none;z-index:1;`;
+
+    const span=document.createElement('span');
+    span.style.cssText=styleBase+`font-size:${pos.fs}px;color:${resolvedColor};display:block;line-height:1.2;`+
+      (pos.bold?'font-weight:700;':'')+(pos.italic?'font-style:italic;':'');
+    span.textContent=text;
+    el.appendChild(span);
+
+    // Single click → select + start drag
+    el.addEventListener('mousedown', e=>{
+      if(e.button !== 0) return;
+      e.preventDefault();
+      fbSelectBlock(key);
+      fbDragging={ key, startX:e.clientX, startY:e.clientY, origX:pos.x, origY:pos.y };
+      const gv=document.getElementById('fb-guide-v'), gh=document.getElementById('fb-guide-h');
+      if(gv) gv.style.display='block'; if(gh) gh.style.display='block';
+    });
+
+    // Double click → inline rename
+    el.addEventListener('dblclick', e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      fbDragging = null;
+      fbSelectBlock(key);
+      fbStartInlineRename(key, el);
+    });
+
+    // Alt + right-click → duplicate and drag copy
+    el.addEventListener('contextmenu', e=>{
+      if(!e.altKey) return;
+      e.preventDefault();
+      const newKey = 'custom_'+(++_fbCustomId);
+      freeLayout[newKey] = Object.assign({}, freeLayout[key], {
+        x: pos.x+3, y: pos.y+5,
+        text:  FB_BASE_KEYS.includes(key) ? fbGetText(key) : (freeLayout[key].text||''),
+        label: (FB_BASE_KEYS.includes(key) ? fbGetLabel(key) : (freeLayout[key].label||''))+' (cópia)',
+      });
+      initFreeCanvas();
+      fbRenderExtraFields();
+      fbSelectBlock(newKey);
+      const newEl = document.getElementById('fb-'+newKey);
+      if(newEl && freeLayout[newKey]){
+        fbDragging={ key:newKey, startX:e.clientX, startY:e.clientY, origX:freeLayout[newKey].x, origY:freeLayout[newKey].y };
+        const gv=document.getElementById('fb-guide-v'), gh=document.getElementById('fb-guide-h');
+        if(gv) gv.style.display='block'; if(gh) gh.style.display='block';
+      }
+      schedulePreview();
+    });
+
+    canvas.appendChild(el);
+    if(fbSelected===key) fbSelectBlock(key);
+  });
+}
+
+document.addEventListener('mousemove', e=>{
+  if(!fbDragging) return;
+  const canvas=document.getElementById('free-canvas');
+  if(!canvas) return;
+
+  // Canvas is 794px wide, CSS-scaled down. We need delta in % of 794px.
+  // rect.width is the scaled visual width, so dividing by rect.width gives % of visual — correct.
+  const rect=canvas.getBoundingClientRect();
+  const dx=((e.clientX-fbDragging.startX)/rect.width)*100;
+  const dy=((e.clientY-fbDragging.startY)/rect.height)*100;
+
+  let nx=fbDragging.origX+dx;
+  let ny=fbDragging.origY+dy;
+
+  const SNAP_ZONE = 2.5;
+  const el=document.getElementById('fb-'+fbDragging.key);
+  const gv=document.getElementById('fb-guide-v');
+  const gh=document.getElementById('fb-guide-h');
+  let snapH=false, snapV=false;
+
+  if(el){
+    // Block dimensions in % of canvas (794px), accounting for CSS scale
+    const bw=(el.offsetWidth  / 794) * 100;
+    const bh=(el.offsetHeight / 1123) * 100;
+    const cx=nx + bw/2;
+    const cy=ny; // anchor is at translateY(-50%) so visual centre == top%
+
+    if(Math.abs(cx-50) < SNAP_ZONE){ nx = 50 - bw/2; snapV = true; }
+    if(Math.abs(cy-50) < SNAP_ZONE){ ny = 50; snapH = true; }
+
+    el.style.left=nx+'%';
+    el.style.top =ny+'%';
+  }
+
+  freeLayout[fbDragging.key].x=nx;
+  freeLayout[fbDragging.key].y=ny;
+
+  if(gv){ gv.style.background=snapV?'rgba(201,169,110,.95)':'rgba(201,169,110,.3)'; gv.style.boxShadow=snapV?'0 0 6px 1px rgba(201,169,110,.5)':'none'; }
+  if(gh){ gh.style.background=snapH?'rgba(201,169,110,.95)':'rgba(201,169,110,.3)'; gh.style.boxShadow=snapH?'0 0 6px 1px rgba(201,169,110,.5)':'none'; }
+
+  if(fbSelected===fbDragging.key){
+    const xi=document.getElementById('fb-pos-x'), yi=document.getElementById('fb-pos-y');
+    if(xi) xi.value=Math.round(nx);
+    if(yi) yi.value=Math.round(ny);
+  }
+  schedulePreview();
+});
+
+document.addEventListener('mouseup', ()=>{
+  if(fbDragging){
+    const gv=document.getElementById('fb-guide-v'), gh=document.getElementById('fb-guide-h');
+    if(gv){ gv.style.display='none'; gv.style.background='rgba(201,169,110,.3)'; gv.style.boxShadow='none'; }
+    if(gh){ gh.style.display='none'; gh.style.background='rgba(201,169,110,.3)'; gh.style.boxShadow='none'; }
+  }
+  fbDragging=null;
+});
+
+// ── Touch support para drag do free canvas (iOS/Android) ─────────────────────
+(function(){
+  // Adiciona touchstart nos blocos via delegação no canvas
+  document.addEventListener('touchstart', function(e){
+    var el = e.target.closest('.fblock');
+    if(!el) return;
+    var key = el.dataset.key;
+    if(!key || !freeLayout[key]) return;
+    e.preventDefault();
+    var t = e.touches[0];
+    fbSelectBlock(key);
+    fbDragging = { key, startX:t.clientX, startY:t.clientY, origX:freeLayout[key].x, origY:freeLayout[key].y };
+    var gv=document.getElementById('fb-guide-v'), gh=document.getElementById('fb-guide-h');
+    if(gv) gv.style.display='block'; if(gh) gh.style.display='block';
+  }, {passive:false});
+
+  document.addEventListener('touchmove', function(e){
+    if(!fbDragging) return;
+    e.preventDefault();
+    var canvas=document.getElementById('free-canvas'); if(!canvas) return;
+    var rect=canvas.getBoundingClientRect();
+    var t=e.touches[0];
+    var dx=((t.clientX-fbDragging.startX)/rect.width)*100;
+    var dy=((t.clientY-fbDragging.startY)/rect.height)*100;
+    var nx=fbDragging.origX+dx, ny=fbDragging.origY+dy;
+    var el=document.getElementById('fb-'+fbDragging.key);
+    if(el){ el.style.left=nx+'%'; el.style.top=ny+'%'; }
+    freeLayout[fbDragging.key].x=nx; freeLayout[fbDragging.key].y=ny;
+    var xi=document.getElementById('fb-pos-x'), yi=document.getElementById('fb-pos-y');
+    if(xi) xi.value=Math.round(nx); if(yi) yi.value=Math.round(ny);
+    schedulePreview();
+  }, {passive:false});
+
+  document.addEventListener('touchend', function(e){
+    if(!fbDragging) return;
+    fbDragging=null;
+    var gv=document.getElementById('fb-guide-v'), gh=document.getElementById('fb-guide-h');
+    if(gv){ gv.style.display='none'; } if(gh){ gh.style.display='none'; }
+  }, {passive:false});
+})();
+
+// ── Per-section contrast ───────────────────────────────────────────────────────
+function buildContrastUI(sec) {
+  const s = contrastSections[sec];
+  return `
+  <div class="g2" style="margin-bottom:12px;">
+    <div class="f">
+      <label>Cor da sombra</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <div id="sh-black-${sec}" onclick="setSecShadowColor('${sec}','black')"
+          style="flex:1;height:34px;background:#000;border-radius:3px;cursor:pointer;border:2px solid ${s.shadowColor==='black'?'var(--gold)':'transparent'};display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.7);">PRETO</span>
+        </div>
+        <div id="sh-white-${sec}" onclick="setSecShadowColor('${sec}','white')"
+          style="flex:1;height:34px;background:#fff;border-radius:3px;cursor:pointer;border:2px solid ${s.shadowColor==='white'?'var(--gold)':'transparent'};display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:9px;letter-spacing:1px;color:rgba(0,0,0,.6);">BRANCO</span>
+        </div>
+      </div>
+    </div>
+    <div class="f">
+      <label>Tipo de sombra</label>
+      <select id="sh-type-${sec}" onchange="contrastSections['${sec}'].type=this.value;schedulePreview()">
+        <option value="none" ${s.type==='none'?'selected':''}>Nenhuma</option>
+        <option value="soft" ${s.type==='soft'?'selected':''}>Suave (glow)</option>
+        <option value="hard" ${s.type==='hard'?'selected':''}>Definida (drop shadow)</option>
+        <option value="both" ${s.type==='both'?'selected':''}>Dupla (suave + definida)</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:12px;">
+    <div class="f">
+      <label>Opacidade da sombra — <span id="sh-op-val-${sec}">${s.opacity}</span>%</label>
+      <input type="range" id="sh-op-${sec}" min="0" max="100" value="${s.opacity}"
+        oninput="contrastSections['${sec}'].opacity=parseInt(this.value);document.getElementById('sh-op-val-${sec}').textContent=this.value;schedulePreview()"
+        style="width:100%;margin-top:6px;">
+    </div>
+    <div class="f">
+      <label>Spread / blur — <span id="sh-bl-val-${sec}">${s.blur}</span>px</label>
+      <input type="range" id="sh-bl-${sec}" min="0" max="60" value="${s.blur}"
+        oninput="contrastSections['${sec}'].blur=parseInt(this.value);document.getElementById('sh-bl-val-${sec}').textContent=this.value;schedulePreview()"
+        style="width:100%;margin-top:6px;">
+    </div>
+  </div>
+  <div style="padding-top:12px;border-top:1px solid var(--border);margin-top:2px;">
+    <div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Modo Contorno (Outline)</div>
+    <div class="g2">
+      <div class="f">
+        <label>Espessura do contorno — <span id="sh-outw-val-${sec}">${s.outlineW}</span>px</label>
+        <input type="range" id="sh-outw-${sec}" min="0" max="6" step="0.5" value="${s.outlineW}"
+          oninput="contrastSections['${sec}'].outlineW=parseFloat(this.value);document.getElementById('sh-outw-val-${sec}').textContent=this.value;schedulePreview()"
+          style="width:100%;margin-top:6px;">
+      </div>
+      <div class="f">
+        <label>Cor do contorno</label>
+        <input type="color" id="sh-outc-${sec}" value="${s.outlineColor}" style="width:100%;height:38px;border-radius:3px;border:1px solid var(--border);cursor:pointer;padding:2px;"
+          oninput="contrastSections['${sec}'].outlineColor=this.value;schedulePreview()">
+      </div>
+    </div>
+  </div>`;
+}
+
+function selectCtab(sec, btn) {
+  activeCtab = sec;
+  document.querySelectorAll('.ctab-btn').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  ['cover','pkg','terms','contact','gallery'].forEach(k=>{
+    document.getElementById('ct-'+k).style.display = k===sec?'block':'none';
+  });
+}
+
+function initContrastUIs() {
+  ['cover','pkg','terms','contact','gallery'].forEach(sec=>{
+    document.getElementById('cg-'+sec).innerHTML = buildContrastUI(sec);
+  });
+}
+
+function setSecShadowColor(sec, c) {
+  contrastSections[sec].shadowColor = c;
+  document.getElementById('sh-black-'+sec).style.borderColor = c==='black'?'var(--gold)':'transparent';
+  document.getElementById('sh-white-'+sec).style.borderColor = c==='white'?'var(--gold)':'transparent';
+  schedulePreview();
+}
+
+function getTextStyle(sec) {
+  const s = contrastSections[sec];
+  const rgb = s.shadowColor==='black'?'0,0,0':'255,255,255';
+  const op = s.opacity/100;
+  const bl = s.blur;
+  let ts = 'none';
+  if(s.type!=='none'){
+    const soft = `0 0 ${bl}px rgba(${rgb},${op}), 0 0 ${Math.round(bl*2)}px rgba(${rgb},${op*0.5})`;
+    const hard = `1px 1px ${Math.round(bl*0.4)}px rgba(${rgb},${op}), 2px 2px ${Math.round(bl*0.7)}px rgba(${rgb},${op*0.7})`;
+    if(s.type==='soft') ts=soft;
+    else if(s.type==='hard') ts=hard;
+    else ts=`${soft}, ${hard}`;
+  }
+  let outline = '';
+  if(s.outlineW>0) {
+    const oc = s.outlineColor;
+    outline = `-webkit-text-stroke:${s.outlineW}px ${oc};paint-order:stroke fill;`;
+  }
+  return { textShadow: ts, outline };
+}
+
+// ── Packages ──────────────────────────────────────────────────────────────────
+var pkgs = [
+  { name:'PACOTE 01', subtitle:'', price:'', items:[''], img:null, imgPos:'50% 50%' },
+  { name:'PACOTE 02', subtitle:'', price:'', items:[''], img:null, imgPos:'50% 50%' },
+  { name:'PACOTE 03', subtitle:'', price:'', items:[''], img:null, imgPos:'50% 50%' },
+];
+
+// ── Service presets ────────────────────────────────────────────────────────────
+var SERVICE_PRESETS = {
+  gestante: {
+    service: 'Ensaio Gestante',
+    client:  '',
+    clientPlaceholder: 'Ex: Gestante & Família',
+    pkgs: [
+      { name:'DOCE ESPERA',  subtitle:'', price:'R$ 350', items:['30 minutos de sessão','10 fotos editadas digitais','1 look','Galeria online privada'] },
+      { name:'MOMENTO',      subtitle:'', price:'R$ 550', items:['60 minutos de sessão','25 fotos editadas digitais','2 looks','Galeria online privada'] },
+      { name:'MEMÓRIA',      subtitle:'', price:'R$ 850', items:['90 minutos de sessão','40 fotos editadas digitais','3 looks','10 fotos impressas 15×21','Galeria online privada'] },
+    ]
+  },
+  corporativo: {
+    service: 'Ensaio Corporativo',
+    client:  '',
+    clientPlaceholder: 'Ex: Empresa / Nome',
+    pkgs: [
+      { name:'PERFIL',       subtitle:'Agilidade e imagem profissional', price:'R$ 200', items:['20 minutos de sessão','5 fotos editadas digitais','Fundo neutro ou ambiente profissional'] },
+      { name:'PROFISSIONAL', subtitle:'Agilidade e imagem profissional', price:'R$ 350', items:['40 minutos de sessão','12 fotos editadas digitais','2 variações de cenário'] },
+      { name:'MARCA PESSOAL',subtitle:'Agilidade e imagem profissional', price:'R$ 600', items:['60 minutos de sessão','25 fotos editadas digitais','3 cenários ou ambientes','Fotos para redes sociais e site'] },
+    ]
+  },
+  ensaio: {
+    service: 'Ensaio Fotográfico',
+    client:  '',
+    clientPlaceholder: 'Ex: Nome do Cliente',
+    pkgs: [
+      { name:'EXPRESS',      subtitle:'Casal / Individual', price:'R$ 300', items:['30 minutos de sessão','10 fotos editadas digitais','1 look'] },
+      { name:'CLÁSSICO',     subtitle:'Casal / Individual', price:'R$ 500', items:['60 minutos de sessão','25 fotos editadas digitais','2 looks'] },
+      { name:'EXPERIÊNCIA',  subtitle:'Casal / Individual', price:'R$ 750', items:['90 minutos de sessão','40 fotos editadas digitais','3 looks','10 fotos impressas 15×21'] },
+    ]
+  },
+  quinze: {
+    service: 'Festa de 15 Anos',
+    client:  '',
+    clientPlaceholder: 'Ex: Nome da Debutante',
+    pkgs: [
+      { name:'MEMÓRIA',      subtitle:'O essencial para registrar o dia', price:'R$ 900',   items:['4 horas de cobertura','150 fotos editadas digitais','Galeria online privada','Entrega em até 20 dias'] },
+      { name:'FESTA',        subtitle:'Cobertura completa da celebração', price:'R$ 1.400', items:['6 horas de cobertura','250 fotos editadas digitais','15 fotos impressas 15×21','Galeria online privada','Entrega em até 25 dias'] },
+      { name:'SONHO',        subtitle:'A experiência completa da debutante', price:'R$ 2.200', items:['8 horas de cobertura','350 fotos editadas digitais','Álbum 25×25 com 20 páginas','Galeria online privada','Entrega em até 30 dias'] },
+    ]
+  },
+  casamento: {
+    service: 'Casamento',
+    client:  '',
+    clientPlaceholder: 'Ex: Noivo & Noiva',
+    pkgs: [
+      { name:'ESSENCIAL',    subtitle:'Para casamentos mais intimistas', price:'R$ 1.400', items:['5 horas de cobertura','250 fotos editadas digitais','Galeria online privada','Entrega em até 25 dias'] },
+      { name:'CLÁSSICO',     subtitle:'Cobertura completa do grande dia', price:'R$ 2.200', items:['8 horas de cobertura','400 fotos editadas digitais','20 fotos impressas 15×21','Galeria online privada','Entrega em até 30 dias'] },
+      { name:'LUXO',         subtitle:'A experiência completa do casamento', price:'R$ 3.500', items:['10 horas de cobertura','500 fotos editadas digitais','Álbum 30×30 com 30 páginas','Galeria online privada','Entrega em até 35 dias'] },
+    ]
+  },
+  infantil: {
+    service: 'Aniversário Infantil',
+    client:  '',
+    clientPlaceholder: 'Ex: Nome do Aniversariante',
+    pkgs: [
+      { name:'ALEGRIA',      subtitle:'', price:'R$ 450',   items:['2 horas de cobertura','80 fotos editadas digitais','Galeria online privada'] },
+      { name:'FESTA',        subtitle:'', price:'R$ 650',   items:['3 horas de cobertura','120 fotos editadas digitais','10 fotos impressas 15×21','Galeria online privada'] },
+      { name:'COMEMORAÇÃO',  subtitle:'', price:'R$ 1.100', items:['4 horas de cobertura','180 fotos editadas digitais','Álbum 20×20','Galeria online privada'] },
+    ]
+  },
+};
+
+function loadServicePreset(type) {
+  const preset = SERVICE_PRESETS[type];
+  if(!preset) return;
+  // Load packages — preserve existing images if any
+  pkgs = preset.pkgs.map(function(p, i) {
+    return {
+      name:     p.name,
+      subtitle: p.subtitle || '',
+      price:    p.price,
+      items:    p.items.slice(),
+      img:      (pkgs[i] && pkgs[i].img) || null,
+      imgPos:   (pkgs[i] && pkgs[i].imgPos) || '50% 50%',
+    };
+  });
+  // Update the hidden f-service field
+  document.getElementById('f-service').value = preset.service;
+  // Sync select
+  var sel = document.getElementById('f-service-select');
+  if(sel) sel.value = type;
+  // Clear client field and update placeholder with the example for this service type
+  var clientInp = document.getElementById('f-client');
+  if(clientInp){
+    clientInp.placeholder = preset.clientPlaceholder || 'Ex: Nome do cliente';
+  }
+  // Sync free canvas if active
+  if(coverLayoutMode === 'free'){ fbSyncField('service', preset.service); fbSyncField('client', preset.client||''); }
+  rPkgs();
+  schedulePreview();
+  toast('Pacotes de ' + preset.service + ' carregados!');
+}
+
+function onServiceSelectChange(val) {
+  var ci = document.getElementById('f-service-custom');
+  if(val === '') {
+    // Personalizado: show custom text input and load blank packages
+    if(ci){ ci.style.display = 'block'; ci.focus(); }
+    document.getElementById('f-service').value = '';
+    pkgs = [
+      { name:'PACOTE 01', subtitle:'', price:'', items:['','',''], img:null, imgPos:'50% 50%' },
+      { name:'PACOTE 02', subtitle:'', price:'', items:['','',''], img:null, imgPos:'50% 50%' },
+      { name:'PACOTE 03', subtitle:'', price:'', items:['','',''], img:null, imgPos:'50% 50%' },
+    ];
+    rPkgs();
+    schedulePreview();
+  } else {
+    // Load preset — hides custom input
+    if(ci) ci.style.display = 'none';
+    loadServicePreset(val);
+  }
+}
+
+function rPkgs() {
+  document.getElementById('pkgs').innerHTML = pkgs.map((p,pi)=>`
+    <div class="pkg-card">
+      <div class="pkg-top">
+        <span class="pkg-num">0${pi+1}</span>
+        <input type="text" placeholder="NOME DO PACOTE" value="${esc(p.name)}" oninput="pkgs[${pi}].name=this.value;schedulePreview()">
+        <input type="text" class="price" placeholder="Preço" value="${esc(p.price)}" oninput="pkgs[${pi}].price=this.value;schedulePreview()">
+      </div>
+      <div class="f" style="margin-bottom:10px;">
+        <label>Subtítulo / tagline</label>
+        <input type="text" value="${esc(p.subtitle||'')}" placeholder="Ex: A experiência completa" oninput="pkgs[${pi}].subtitle=this.value;schedulePreview()">
+      </div>
+      <div id="items-${pi}">
+        ${p.items.map((it,ii)=>`<div class="ir">
+          <input type="text" value="${esc(it)}" placeholder="Ex: Descrição do serviço" oninput="pkgs[${pi}].items[${ii}]=this.value;schedulePreview()">
+          <button class="brm" onclick="rmItem(${pi},${ii})">×</button>
+        </div>`).join('')}
+      </div>
+      <button class="bai" onclick="addItem(${pi})">+ item</button>
+      <div class="pkg-img-area">
+        <div class="pkg-img-lbl">
+          <span>Foto de fundo (sem distorção)</span>
+          ${p.img ? `<button class="bai" style="margin:0;" onclick="pkgs[${pi}].img=null;rPkgs();schedulePreview()">Remover</button>` : ''}
+        </div>
+        ${p.img
+          ? `<div style="position:relative;">
+               <img src="${p.img}" class="pkg-img-preview" style="object-fit:cover;object-position:${p.imgPos||'50% 50%'}">
+               <button class="bai" style="margin:6px 0 0;width:100%;" onclick="openRepos('pkg',${pi})">✦ Editar posição da foto</button>
+             </div>`
+          : `<div class="uz" style="display:flex;position:relative;">
+               <input type="file" id="pkg-inp-${pi}" accept="image/*" style="position:absolute;inset:0;opacity:0.001;width:100%;height:100%;font-size:16px;cursor:pointer;" onchange="loadPkgImg(this,${pi})">
+               <div class="uz-i">＋</div><div class="uz-l">Clique para adicionar foto</div>
+             </div>`}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+        <button class="bdup" onclick="dupPkg(${pi})" style="flex:1;">Duplicar pacote</button>
+        <button class="brp" onclick="rmPkg(${pi})" style="padding:3px 10px;" title="Remover pacote">×</button>
+      </div>
+    </div>`).join('');
+  schedulePreview();
+}
+function addPkg(){pkgs.push({name:`PACOTE 0${pkgs.length+1}`,subtitle:'',price:'R$ 0',items:['Descrição do serviço'],img:null,imgPos:'50% 50%'});rPkgs();}
+function dupPkg(i){const s=pkgs[i];pkgs.splice(i+1,0,{...s,items:[...s.items],imgPos:s.imgPos||'50% 50%'});rPkgs();}
+function rmPkg(i){if(pkgs.length>1){pkgs.splice(i,1);rPkgs();}}
+function addItem(pi){pkgs[pi].items.push('');rPkgs();}
+function rmItem(pi,ii){pkgs[pi].items.splice(ii,1);rPkgs();}
+function loadPkgImg(inp,pi){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{pkgs[pi].img=e.target.result;pkgs[pi].imgPos='50% 50%';rPkgs();};
+  r.readAsDataURL(f);
+}
+rPkgs();
+
+// ── Terms ─────────────────────────────────────────────────────────────────────
+var terms = [
+  {k:'Validade',v:'Esta proposta é válida por 30 dias após o envio.'},
+  {k:'Pagamento',v:'50% de sinal na assinatura do contrato. Saldo total até 5 dias antes do evento.'},
+  {k:'Direitos',v:'As imagens pertencem ao fotógrafo. O cliente recebe licença de uso pessoal e nas redes sociais.'},
+  {k:'Cancelamento',v:'Cancelamentos com menos de 7 dias não terão devolução do sinal.'},
+  {k:'Entrega',v:'Fotos entregues via galeria digital privada no prazo de cada pacote.'},
+];
+function rTerms(){
+  document.getElementById('terms').innerHTML=terms.map((t,i)=>`
+    <div class="tr" style="position:relative;">
+      <input type="text" value="${esc(t.k)}" oninput="terms[${i}].k=this.value;schedulePreview()">
+      <div style="display:flex;gap:6px;align-items:start;">
+        <textarea oninput="terms[${i}].v=this.value;schedulePreview()" style="flex:1;">${t.v}</textarea>
+        <button class="brm" onclick="terms.splice(${i},1);rTerms();schedulePreview()" style="margin-top:8px;">×</button>
+      </div>
+    </div>`).join('');
+}
+function addTerm(){terms.push({k:'Novo item',v:''});rTerms();}
+rTerms();
+
+// ── Gallery ──────────────────────────────────────────────────────────────────
+function addGalPhoto(){ document.getElementById('inp-gal').click(); }
+
+function loadGalPhotos(inp){
+  Array.from(inp.files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      const im=new Image();
+      im.onload=()=>{
+        galPhotos.push({src:e.target.result,pos:'50% 50%',w:im.naturalWidth,h:im.naturalHeight,hScale:1.0,id:_gNewId(),cols:0,vpos:'mid'});
+        rGallery();
+        schedulePreview();
+        // Also re-render after delays to catch layout after scroll
+        setTimeout(rGallery, 100);
+        setTimeout(rGallery, 500);
+      };
+      im.src=e.target.result;
+    };
+    r.readAsDataURL(f);
+  });
+  inp.value='';
+}
+
+// is landscape if wider than tall
+// ══════════════════════════════════════════════════════════════════════════════
+// GALLERY ENGINE v4 — Grid 3 cols, drag livre, resize, topo/meio/base
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Classificação ─────────────────────────────────────────────────────────────
+function galIsL(g){ return g.w && g.h && (g.w / g.h) > 1.4; }
+
+// Cols efetivas: 1=vertical, 2=horizontal, 3=destaque
+function galCols(g){
+  if (g.cols) return g.cols;
+  return galIsL(g) ? 2 : 1;
+}
+
+// ── IDs estáveis ──────────────────────────────────────────────────────────────
+var _gid = 0;
+function _gNewId(){ return 'gp' + (++_gid) + Date.now().toString(36); }
+function _gIdx(id){ for(var i=0;i<galPhotos.length;i++) if(galPhotos[i].id===id) return i; return -1; }
+function _gEnsureIds(){ galPhotos.forEach(function(g,i){ if(!g.id) g.id=_gNewId(); }); }
+
+// ── Layout rows ───────────────────────────────────────────────────────────────
+// Distribui galPhotos em linhas de 3 colunas sem buracos.
+// Retorna [{photos:[], totalCols:N}]
+function galLayoutRows(){
+  var rows = [], cur = [], curCols = 0, COLS = 3;
+  galPhotos.forEach(function(g){
+    var c = Math.min(galCols(g), COLS);
+    if (curCols + c > COLS && cur.length) {
+      rows.push({photos: cur.slice(), totalCols: curCols});
+      cur = []; curCols = 0;
+    }
+    cur.push(g); curCols += c;
+    if (curCols === COLS) {
+      rows.push({photos: cur.slice(), totalCols: curCols});
+      cur = []; curCols = 0;
+    }
+  });
+  if (cur.length) rows.push({photos: cur.slice(), totalCols: curCols});
+  return rows;
+}
+
+// ── galBuildPages: converte para formato do PDF ───────────────────────────────
+// Retorna array de páginas; cada página = array de {photos:[], isLRow:bool}
+function galBuildPages(){
+  if (!galPhotos.length) return [[]];
+  var rows = galLayoutRows();
+  var MAX = 3; // linhas por página
+  var pages = [], cur = [];
+  rows.forEach(function(row){
+    cur.push(row);
+    if (cur.length >= MAX){ pages.push(cur.slice()); cur = []; }
+  });
+  if (cur.length) pages.push(cur);
+  // Convert to {photos, isLRow} format for buildOneGalPage
+  return pages.map(function(pr){
+    return pr.map(function(row){
+      var isLRow = row.photos.length === 1 && galCols(row.photos[0]) > 1;
+      return { photos: row.photos, isLRow: isLRow };
+    });
+  });
+}
+
+// ── galSizes: tamanhos para o PDF ─────────────────────────────────────────────
+function galSizes(gridW, gap){
+  var colW = Math.floor((gridW - gap*2) / 3);
+  var ratios = galPhotos.filter(function(g){ return galCols(g)===1; })
+    .map(function(g){ return g.h&&g.w ? g.h/g.w : 1.33; }).sort(function(a,b){return a-b;});
+  var med = ratios.length ? ratios[Math.floor(ratios.length/2)] : 1.33;
+  var portH = Math.round(Math.min(Math.max(med,1.0),1.8)*colW);
+  return { cellW3: colW, basePortH: portH };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EDITOR INTERATIVO
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Drag & Drop ───────────────────────────────────────────────────────────────
+var _gDragId = null;
+
+function _gDragStart(e, id){
+  _gDragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  // Ghost invisível para não mostrar preview nativo
+  var ghost = document.createElement('div');
+  ghost.style.cssText = 'position:fixed;top:-99px;width:1px;height:1px;';
+  document.body.appendChild(ghost);
+  e.dataTransfer.setDragImage(ghost, 0, 0);
+  setTimeout(function(){ document.body.removeChild(ghost); }, 0);
+  // Opacidade na foto sendo arrastada
+  var cell = document.querySelector('[data-gid="'+id+'"]');
+  if (cell){ cell.style.opacity='0.3'; cell.style.outline='2px dashed #C9A96E'; }
+}
+
+function _gDragEnd(){
+  _gDragId = null;
+  document.querySelectorAll('[data-gid]').forEach(function(el){
+    el.style.opacity=''; el.style.outline='';
+  });
+  // Limpa todos os indicadores de drop
+  document.querySelectorAll('.gdrop-ind').forEach(function(el){ el.style.opacity='0'; });
+}
+
+function _gDragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; }
+
+function _gDropOn(e, targetId, after){
+  e.preventDefault(); e.stopPropagation();
+  var src = _gDragId;
+  _gDragEnd();
+  if (!src || src === targetId) return;
+  var si = _gIdx(src), ti = _gIdx(targetId);
+  if (si<0||ti<0) return;
+  var moved = galPhotos.splice(si, 1)[0];
+  var dst = ti > si ? ti-1 : ti;
+  if (after) dst++;
+  dst = Math.max(0, Math.min(galPhotos.length, dst));
+  galPhotos.splice(dst, 0, moved);
+  rGallery(); schedulePreview();
+}
+
+// Visual: ilumina zona de drop
+function _gdzOn(el){
+  el.style.opacity = '1';
+  el.style.background = 'rgba(201,169,110,0.75)';
+}
+function _gdzOff(el){ el.style.opacity='0'; }
+
+// ── Topo / Meio / Base ────────────────────────────────────────────────────────
+function galSetVPos(id, vpos){
+  _gEnsureIds();
+  var idx = _gIdx(id); if(idx<0) return;
+  galPhotos[idx].vpos = vpos;
+
+  // Reposiciona dentro da página desta foto
+  var pages = galBuildPages();
+  for(var p=0; p<pages.length; p++){
+    var pageIds=[];
+    pages[p].forEach(function(row){ row.photos.forEach(function(g){ pageIds.push(g.id); }); });
+    if(pageIds.indexOf(id)<0) continue;
+
+    // Separa a foto horizontal das verticais desta página
+    var pagePhotos = pageIds.map(function(pid){ return galPhotos[_gIdx(pid)]; }).filter(Boolean);
+    var hori = pagePhotos.filter(function(g){ return g.id===id; });
+    var vert = pagePhotos.filter(function(g){ return g.id!==id; });
+    var half = Math.ceil(vert.length/2);
+    var newOrder = vpos==='top' ? hori.concat(vert) :
+                   vpos==='bottom' ? vert.concat(hori) :
+                   vert.slice(0,half).concat(hori).concat(vert.slice(half));
+
+    // Aplica a nova ordem no galPhotos
+    var startIdx = _gIdx(pageIds[0]);
+    newOrder.forEach(function(g,i){ if(startIdx+i<galPhotos.length) galPhotos[startIdx+i]=g; });
+    rGallery(); schedulePreview();
+    return;
+  }
+}
+
+// ── Cycle cols: 1→2→3→1 ──────────────────────────────────────────────────────
+function galCycleCols(id){
+  var idx=_gIdx(id); if(idx<0) return;
+  var c = galPhotos[idx].cols || galCols(galPhotos[idx]);
+  galPhotos[idx].cols = c===1?2:c===2?3:1;
+  rGallery(); schedulePreview();
+}
+
+// ── Resize (arrastar borda inferior) ─────────────────────────────────────────
+var _grs = null;
+function _grsStart(e,id,baseH){
+  e.preventDefault(); e.stopPropagation();
+  var idx=_gIdx(id); if(idx<0) return;
+  var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  _grs={id:id,sy:clientY,s0:galPhotos[idx].hScale||1.0,baseH:baseH};
+  document.body.style.cursor='ns-resize';
+  document.body.style.userSelect='none';
+}
+document.addEventListener('mousemove',function(e){
+  if(!_grs) return;
+  var idx=_gIdx(_grs.id); if(idx<0) return;
+  var dy=e.clientY-_grs.sy;
+  galPhotos[idx].hScale=Math.max(0.3,Math.min(3.5,_grs.s0+dy/_grs.baseH));
+  rGallery(); schedulePreview();
+});
+document.addEventListener('mouseup',function(){
+  if(!_grs) return; _grs=null;
+  document.body.style.cursor=''; document.body.style.userSelect='';
+  rGallery();
+});
+// Touch aliases para resize de galeria
+document.addEventListener('touchmove',function(e){
+  if(!_grs) return;
+  e.preventDefault();
+  var idx=_gIdx(_grs.id); if(idx<0) return;
+  var dy=e.touches[0].clientY-_grs.sy;
+  galPhotos[idx].hScale=Math.max(0.3,Math.min(3.5,_grs.s0+dy/_grs.baseH));
+  rGallery(); schedulePreview();
+},{passive:false});
+document.addEventListener('touchend',function(){
+  if(!_grs) return; _grs=null;
+  document.body.style.cursor=''; document.body.style.userSelect='';
+  rGallery();
+});
+
+// Helpers sem problema de aspas
+function _galRepos(id){ var i=_gIdx(id); if(i>=0) openRepos('gal',i); }
+function _galRm(id){ var i=_gIdx(id); if(i>=0){ galPhotos.splice(i,1); rGallery(); schedulePreview(); } }
+
+// ── rGallery: renderiza o editor ──────────────────────────────────────────────
+// Usa o mesmo algoritmo de escala do buildOneGalPage para que o preview
+// reflita exatamente o que será gerado no PDF.
+function rGallery(){
+  _gEnsureIds();
+  var gap=parseInt(document.getElementById('gal-gap')?.value)||5;
+  var el=document.getElementById('gal-editor');
+  if(!el) return;
+  if(!galPhotos.length){
+    el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:12px 0;">Nenhuma foto adicionada ainda.</div>';
+    return;
+  }
+  var edW=el.offsetWidth||el.getBoundingClientRect().width||0;
+  if(edW<100) edW=680;
+
+  var COLS=3;
+  var colW=Math.floor((edW-gap*(COLS-1))/COLS);
+
+  // Altura base: mediana das proporções das fotos verticais (igual ao PDF)
+  var pRat=galPhotos.filter(function(g){return galCols(g)===1;})
+    .map(function(g){return g.h&&g.w?g.h/g.w:1.33;}).sort(function(a,b){return a-b;});
+  var medR=pRat.length?pRat[Math.floor(pRat.length/2)]:1.33;
+  var basePortH=Math.round(Math.min(Math.max(medR,1.0),1.8)*colW);
+
+  // ── Mesmo cálculo de disponibilidade do buildOneGalPage ──────────────────
+  // O editor mostra as fotos em grupos de 3 linhas (páginas).
+  // Para cada grupo calcula o scaleFactor e aplica nas alturas.
+  // Constantes do PDF (794×1123, padX=60, padBot=40)
+  // Reproduzidos em escala do editor: ratio = edW / gridW_pdf
+  var pdfW=794, pdfPadX=60, pdfPadBot=40;
+  var pdfGridW=pdfW-pdfPadX*2; // 674px
+  var editorScale=edW/pdfGridW; // fator de escala editor→PDF
+
+  // Altura disponível no PDF para o grid (sem cabeçalho)
+  // Primeira página: topPad=44, hdrH≈80  → availH = 1123-44-40-80 = 959
+  // Demais páginas:  topPad=34, hdrH≈44  → availH = 1123-34-40-44 = 1005
+  // No editor usamos a mesma proporção escalada
+  var pdfAvailFirst=1123-44-40-80;
+  var pdfAvailCont =1123-34-40-44;
+
+  var rows=galLayoutRows();
+  var rowsPerPage=3;
+
+  // Calcula altura de uma linha com base no basePortH e hScale máximo da linha
+  function rowH_raw(row){
+    var maxS=1.0;
+    row.photos.forEach(function(g){ var s=g.hScale||1.0; if(s>maxS)maxS=s; });
+    return Math.round(basePortH*maxS);
+  }
+
+  // Para cada grupo de linhas (página) calcula o scaleFactor
+  function scaleForPage(pageRows, isFirst){
+    var pdfAvail=isFirst?pdfAvailFirst:pdfAvailCont;
+    // Escala pdfAvail para o espaço do editor
+    var editorAvail=pdfAvail*editorScale;
+    var total=pageRows.reduce(function(acc,row,ri){
+      return acc+rowH_raw(row)+(ri<pageRows.length-1?gap:0);
+    },0);
+    if(total>editorAvail && total>0) return editorAvail/total;
+    return 1.0;
+  }
+
+  // CSS — uma vez só
+  var css=
+    '<style>'+
+    '[data-gid]{position:relative;overflow:hidden;border-radius:4px;flex-shrink:0;'+
+               'transition:opacity .2s,outline .1s;cursor:grab;}'+
+    '[data-gid]:active{cursor:grabbing;}'+
+    '[data-gid]:hover .g-btns{opacity:1;}'+
+    '.g-btns{position:absolute;top:5px;right:5px;display:flex;gap:3px;z-index:8;'+
+             'opacity:0;transition:opacity .2s;}'+
+    '.gbtn{border:none;border-radius:3px;cursor:pointer;font-size:10px;font-weight:700;'+
+          'width:24px;height:24px;display:flex;align-items:center;justify-content:center;'+
+          'position:relative;z-index:8;}'+
+    '.gresz{position:absolute;bottom:0;left:0;right:0;height:10px;cursor:ns-resize;z-index:6;'+
+           'background:linear-gradient(transparent,rgba(201,169,110,.5));'+
+           'display:flex;align-items:flex-end;justify-content:center;padding-bottom:2px;}'+
+    '.gresz::after{content:"";width:22px;height:2px;background:#C9A96E;border-radius:1px;}'+
+    '.gvpos{position:absolute;bottom:12px;left:0;right:0;display:flex;gap:3px;padding:0 5px;z-index:7;'+
+            'opacity:0;transition:opacity .2s;}'+
+    '[data-gid]:hover .gvpos{opacity:1;}'+
+    '.gvbtn{flex:1;padding:4px 0;background:rgba(14,14,12,.8);border:1px solid rgba(201,169,110,.4);'+
+            'color:var(--muted);font-size:7px;letter-spacing:.5px;text-transform:uppercase;'+
+            'cursor:pointer;border-radius:2px;font-family:Montserrat,sans-serif;transition:all .15s;}'+
+    '.gvbtn:hover,.gvbtn.gva{border-color:#C9A96E;color:#C9A96E;}'+
+    '.gdz{position:absolute;top:0;height:100%;width:45%;z-index:5;background:transparent;}'+
+    '.gdz-l{left:0;} .gdz-r{right:0;}'+
+    '.gdz.gdon{background:linear-gradient(90deg,rgba(201,169,110,.65) 0%,transparent 100%);}'+
+    '.gdz-r.gdon{background:linear-gradient(270deg,rgba(201,169,110,.65) 0%,transparent 100%);}'+
+    '</style>';
+
+  var html=css;
+
+  var pageIdx=0;
+
+  rows.forEach(function(row,ri){
+    var isPageStart=(ri%rowsPerPage===0);
+    var isFirst=(ri<rowsPerPage); // primeira página
+
+    if(isPageStart){
+      if(ri>0) html+='</div>'; // fecha página anterior
+      pageIdx++;
+
+      // Calcula scaleFactor para esta página
+      var pageRows=rows.slice(ri, ri+rowsPerPage);
+      var sf=scaleForPage(pageRows, ri===0);
+      // Guarda no contexto para ser usado pelas linhas desta página
+      html+='<!-- sf='+sf+' -->';
+
+      if(rows.length>rowsPerPage)
+        html+='<div style="font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:'+(ri?'12px':'0')+' 0 5px;">Página '+pageIdx+'</div>';
+      html+='<div data-page="'+(ri/rowsPerPage|0)+'" style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:'+gap+'px;margin-bottom:6px;">';
+    }
+
+    // scaleFactor desta página
+    var pageStart=Math.floor(ri/rowsPerPage)*rowsPerPage;
+    var pageRows=rows.slice(pageStart, pageStart+rowsPerPage);
+    var sf=scaleForPage(pageRows, pageStart===0);
+    var scaledGap=Math.round(gap*sf);
+
+    // Altura da linha = max hScale * basePortH * sf
+    var iH=Math.round(rowH_raw(row)*sf);
+
+    html+='<div style="display:flex;gap:'+scaledGap+'px;margin-bottom:'+scaledGap+'px;align-items:flex-start;">';
+
+    row.photos.forEach(function(g){
+      var id=g.id;
+      var cols=galCols(g);
+      // Recalcula largura da coluna com gap escalado
+      var scaledColW=Math.floor((edW-scaledGap*(COLS-1))/COLS);
+      var iW=cols===3?edW:cols===2?Math.round(scaledColW*2+scaledGap):scaledColW;
+      var isH=cols>1;
+      var vpos=g.vpos||'mid';
+      var colsLabel=cols===1?'1col':cols===2?'2col':'3col';
+
+      html+=
+        '<div data-gid="'+id+'" style="width:'+iW+'px;height:'+iH+'px;"'+
+        ' draggable="true"'+
+        ' ondragstart="_gDragStart(event,\''+id+'\')"'+
+        ' ondragend="_gDragEnd()"'+
+        ' ondragover="_gDragOver(event)"'+
+        ' ondrop="_gDropOn(event,\''+id+'\',false)">'+
+
+        '<img class="gimg-'+id+'" src="'+g.src+'"'+
+        ' style="width:'+iW+'px;height:'+iH+'px;object-fit:cover;object-position:'+(g.pos||'50% 50%')+';display:block;pointer-events:none;">'+
+
+        '<div class="gdz gdz-l"'+
+        ' ondragenter="this.classList.add(\'gdon\')"'+
+        ' ondragleave="this.classList.remove(\'gdon\')"'+
+        ' ondragover="event.preventDefault()"'+
+        ' ondrop="_gDropOn(event,\''+id+'\',false);this.classList.remove(\'gdon\')"></div>'+
+
+        '<div class="gdz gdz-r"'+
+        ' ondragenter="this.classList.add(\'gdon\')"'+
+        ' ondragleave="this.classList.remove(\'gdon\')"'+
+        ' ondragover="event.preventDefault()"'+
+        ' ondrop="_gDropOn(event,\''+id+'\',true);this.classList.remove(\'gdon\')"></div>'+
+
+        '<div class="g-btns">'+
+        '<button class="gbtn" onclick="_galRepos(\''+id+'\')" style="background:rgba(40,40,40,.9);color:#C9A96E;" title="Ponto focal">✦</button>'+
+        '<button class="gbtn" onclick="galCycleCols(\''+id+'\')" style="background:rgba(40,40,40,.9);color:#C9A96E;" title="Colunas: '+colsLabel+'">'+
+          (cols===1?'↔²':cols===2?'↔³':'↔¹')+'</button>'+
+        '<button class="gbtn" onclick="_galRm(\''+id+'\')" style="background:rgba(180,40,40,.9);color:#fff;" title="Remover">×</button>'+
+        '</div>'+
+
+        (isH?'<div class="gresz" onmousedown="_grsStart(event,\''+id+'\','+basePortH+')"></div>':'')+
+
+        (isH?
+        '<div class="gvpos">'+
+        '<button class="gvbtn'+(vpos==='top'?' gva':'')+'" onclick="galSetVPos(\''+id+'\',\'top\')">↑ Topo</button>'+
+        '<button class="gvbtn'+(vpos==='mid'?' gva':'')+'" onclick="galSetVPos(\''+id+'\',\'mid\')">↕ Meio</button>'+
+        '<button class="gvbtn'+(vpos==='bottom'?' gva':'')+'" onclick="galSetVPos(\''+id+'\',\'bottom\')">↓ Base</button>'+
+        '</div>':'')+
+
+        '</div>';
+    });
+
+    html+='</div>'; // fecha row flex
+  });
+
+  html+='</div>'; // fecha último page box
+  el.innerHTML=html;
+}
+rGallery();
+
+
+
+// ── Gallery page builder (preview + PDF — SAME CODE) ─────────────────────────
+function buildOneGalPage(rows, galTitle, galSub, isFirst){
+  const st=getTextStyle('gallery');
+  const TSA=`text-shadow:${st.textShadow};${st.outline}`;
+  const W=794,H=1123,padX=60,padBot=40;
+  const topPad=isFirst?44:34;
+  const gap=parseInt(document.getElementById('gal-gap')?.value)||5;
+  const gridW=W-padX*2;
+  const {cellW3,basePortH}=galSizes(gridW, gap);
+  const accent=getAccentColor();
+  const bg=themeColors.bg,fg=themeColors.text;
+
+  // Header height estimate: first page ~80px, continuation ~44px
+  const hdrH=isFirst?80:44;
+
+  // Available vertical space for the grid
+  const availH=H-topPad-padBot-hdrH;
+
+  // Calculate the raw total height that rows would occupy
+  function calcRowHeight(row){
+    // max hScale among photos in this row
+    var maxScale=1.0;
+    row.photos.forEach(function(g){ var s=g.hScale||1.0; if(s>maxScale) maxScale=s; });
+    return Math.round(basePortH*maxScale);
+  }
+  var totalRawH=rows.reduce(function(acc,row,ri){
+    return acc+calcRowHeight(row)+(ri<rows.length-1?gap:0);
+  },0);
+
+  // Scale factor: shrink everything proportionally if it overflows
+  var scaleFactor=1.0;
+  if(totalRawH>availH && totalRawH>0){
+    scaleFactor=availH/totalRawH;
+  }
+
+  const hdr=isFirst
+    ?`<div style="flex-shrink:0;margin-bottom:18px;padding-bottom:13px;border-bottom:1px solid ${accent}33;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:5px;${TSA}">${galSub}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:40px;color:${fg};font-weight:300;line-height:1;${TSA}">${galTitle}</div>
+      </div>`
+    :`<div style="flex-shrink:0;margin-bottom:13px;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:4px;color:${accent};text-transform:uppercase;${TSA}">${galTitle} — cont.</div>
+        <div style="width:26px;height:1px;background:${accent};margin-top:6px;"></div>
+      </div>`;
+
+  // Scaled gap (reduce proportionally when scaling down)
+  const scaledGap=Math.round(gap*scaleFactor);
+
+  const rowsHtml=rows.map(function(row,ri){
+    const rowH=Math.round(calcRowHeight(row)*scaleFactor);
+    const cells=row.photos.map(function(g){
+      const cols=galCols(g);
+      // Scale the cell width too so everything fits the grid
+      const rawW=cols===3?gridW:cols===2?Math.round(gridW*2/3+gap/2):cellW3;
+      // Recalculate widths with scaled gap
+      const scaledCellW3=Math.floor((gridW-scaledGap*2)/3);
+      const iW=cols===3?gridW:cols===2?Math.round(gridW*2/3+scaledGap/2):scaledCellW3;
+      const iH=rowH;
+      return `<div style="width:${iW}px;height:${iH}px;overflow:hidden;flex-shrink:0;break-inside:avoid;"><img src="${g.src}" style="width:${iW}px;height:${iH}px;object-fit:cover;object-position:${g.pos||'50% 50%'};display:block;"></div>`;
+    }).join('');
+    const mb=ri<rows.length-1?scaledGap:0;
+    return `<div style="display:flex;gap:${scaledGap}px;margin-bottom:${mb}px;align-items:flex-start;break-inside:avoid;page-break-inside:avoid;">${cells}</div>`;
+  }).join('');
+
+  const div=document.createElement('div');
+  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};overflow:hidden;display:flex;flex-direction:column;padding:${topPad}px ${padX}px ${padBot}px;">
+    ${hdr}<div style="overflow:hidden;">${rowsHtml}</div></div>`;
+  return div;
+}
+
+function buildGalleryPages(){
+  const t=gv('gal-title')||'Galeria', s=gv('gal-subtitle')||'';
+  const pages=galBuildPages();
+  if(!pages.length||!pages[0].length) return [()=>buildOneGalPage([],t,s,true)];
+  return pages.map((rows,i)=>()=>buildOneGalPage(rows,t,s,i===0));
+}
+function buildGalleryPage(){ return buildGalleryPages()[0](); }
+
+// ── Page builder helpers ─────────────────────────────────────────────────────
+function getAccentColor(){ return 'hsl('+accentH+','+accentSat+'%,'+accentLit+'%)'; }
+function getAccentDark(){ return 'hsl('+accentH+','+accentSat+'%,'+Math.max(15,accentLit-35)+'%)'; }
+function overlayOpacity(){ return Math.min(95,Math.max(10,parseInt(gv('overlay-opacity'))||55))/100; }
+
+// Builds a smooth multi-stop gradient for cover layouts.
+// op: max opacity 0-1, spread: how far up the gradient goes 0-1
+var gradCurve = 'soft'; // 'soft' | 'mid' | 'hard'
+
+function setGradCurve(curve, el) {
+  gradCurve = curve;
+  ['soft','mid','hard'].forEach(c => {
+    const b = document.getElementById('gcurve-'+c);
+    if(!b) return;
+    if(c === curve) {
+      b.style.background = 'rgba(201,169,110,.15)'; b.style.borderColor = 'var(--gold)'; b.style.color = 'var(--gold)';
+    } else {
+      b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border)'; b.style.color = 'var(--muted)';
+    }
+  });
+  schedulePreview();
+}
+
+function buildGradient(direction, bg) {
+  const op     = Math.min(1, Math.max(0, (parseInt(document.getElementById('grad-opacity')?.value  ?? 85)) / 100));
+  const spread = Math.min(1, Math.max(0, (parseInt(document.getElementById('grad-spread')?.value   ?? 100)) / 100));
+  const toHex  = v => Math.round(Math.max(0,Math.min(1,v)) * 255).toString(16).padStart(2,'0');
+
+  // 10 evenly spaced positions 0→1
+  const n = 10;
+  const stopsStr = Array.from({length: n}, (_, i) => {
+    const t = i / (n - 1);          // 0.0 → 1.0
+    const pos = t * spread;          // clamp to spread
+
+    // Curve shapes — all go from 1 → 0 but at different speeds
+    let mult;
+    if(gradCurve === 'soft') {
+      // Exponential: stays high for long, drops fast near the top
+      mult = Math.pow(1 - t, 1.8);
+    } else if(gradCurve === 'hard') {
+      // Aggressive: drops fast near the base
+      mult = Math.pow(1 - t, 0.6);
+    } else {
+      // mid: smooth S-shaped power curve
+      mult = Math.pow(1 - t, 1.2);
+    }
+
+    return `${bg}${toHex(op * mult)} ${Math.round(pos * 100)}%`;
+  }).join(',');
+
+  return `linear-gradient(${direction},${stopsStr})`;
+}
+
+// ── Cover / Pkg / Terms page builders ────────────────────────────────────────
+function buildCoverPage() {
+  const st=getTextStyle('cover');
+  const TS=st.textShadow, OL=st.outline;
+  const W=794,H=1123;
+  const layout = coverLayoutMode || 'bottom';
+  const accent=getAccentColor();
+  const bg=themeColors.bg, fg=themeColors.text, fgd=themeColors.textDim;
+  const name=gv('f-name'), client=gv('f-client'), service=gv('f-service'), tagline=gv('f-tagline');
+  const date=gv('f-date'); // optional event date shown on cover
+  const op=overlayOpacity();
+  const TS_ATTR=`text-shadow:${TS};${OL}`;
+  const dateHtml = date ? `<div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-top:10px;${TS_ATTR}">${date}</div>` : '';
+  const dateLine = '';
+  const dateCorner = date ? `<div style="position:absolute;top:44px;right:60px;font-family:'Montserrat',sans-serif;font-size:7px;letter-spacing:2.5px;color:${fgd};text-transform:uppercase;opacity:.8;text-align:right;${TS_ATTR}">${date}</div>` : '';
+  let textBlock='';
+  if(layout==='free'){
+    const fbc = (token) => {
+      if(!token||token==='accent') return accent;
+      if(token==='text')  return fg;
+      if(token==='dim')   return fgd;
+      if(token==='white') return '#ffffff';
+      return token;
+    };
+    // Build HTML for every block in freeLayout
+    textBlock = Object.keys(freeLayout).map(key=>{
+      const p = freeLayout[key];
+      const txt = FB_BASE_KEYS.includes(key)
+        ? (key==='service'?service:key==='client'?client:key==='tagline'?tagline:name)
+        : (p.text||'');
+      if(!txt) return '';
+      const styleBase = fbGetStyle(key);
+      let fs = `font-size:${p.fs}px;`;
+      let fw = p.bold  ? 'font-weight:700;' : (styleBase.includes('font-weight')?'':'font-weight:300;');
+      let fi = p.italic? 'font-style:italic;' : (styleBase.includes('font-style:italic')?'font-style:normal;':'');
+      const color = `color:${fbc(p.color)};`;
+      // Remove duplicate font-weight/style from base string before appending overrides
+      const base = styleBase.replace(/font-weight:[^;]+;?/g,'').replace(/font-style:[^;]+;?/g,'');
+      return `<div style="position:absolute;left:${p.x}%;top:${p.y}%;transform:translateY(-50%);">
+        <div style="${base}${fs}${fw}${fi}${color}${TS_ATTR}">${txt}</div>
+      </div>`;
+    }).join('');
+    // For base 'name' block also append f-title subtitle
+    const np = freeLayout.name;
+    if(np){
+      // Offset is in PDF px — do NOT multiply by FB_SCALE (that's only for canvas rendering)
+      textBlock += `<div style="position:absolute;left:${np.x}%;top:calc(${np.y}% + ${np.fs * 1.35}px);transform:translateY(-50%);">
+        <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:3px;color:${fgd};text-transform:uppercase;${TS_ATTR}">${gv('f-title')}</div>
+      </div>`;
+    }
+  } else if(layout==='top'||layout==='top-left'||layout==='top-right'){
+    const align = layout==='top-right' ? 'right' : layout==='top-left' ? 'left' : 'center';
+    const px    = layout==='top-right' ? 'right:60px;left:auto' : 'left:60px';
+    const mAuto = align==='center' ? 'margin:18px auto;' : align==='right' ? 'margin:18px 0 18px auto;' : 'margin:18px 0;';
+    textBlock=`<div style="position:absolute;top:0;left:0;right:0;padding:52px 60px 40px;background:${buildGradient('to bottom',bg)};">
+      <div style="text-align:${align};">
+        <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:14px;${TS_ATTR}">${service}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?52:68}px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${client}</div>
+        <div style="width:50px;height:1px;background:${accent};${mAuto}"></div>
+        <div style="font-family:'Montserrat',sans-serif;font-size:10px;color:${fgd};letter-spacing:1px;${TS_ATTR}">${tagline}</div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:48px;${px};text-align:${align};">
+      ${photographerBlock(accent,fgd,TS_ATTR)}
+    </div>`;
+  } else if(layout==='split-right'){
+    // Texto à direita, foto à esquerda — sem imagem global no fundo
+    const imgHtml = imgs.cover
+      ? `<img src="${imgs.cover}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${coverImgPos};">
+         <div style="position:absolute;inset:0;background:${bg};opacity:${op*0.15};"></div>`
+      : `<div style="position:absolute;inset:0;background:${getAccentDark()};"></div>`;
+    const div2=document.createElement('div');
+    div2.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;display:flex;">
+      ${dateCorner}
+      <div style="width:${Math.round(W*0.5)}px;height:${H}px;position:relative;overflow:hidden;flex-shrink:0;">${imgHtml}</div>
+      <div style="flex:1;height:${H}px;background:${bg};display:flex;flex-direction:column;justify-content:center;padding:60px 50px;overflow:hidden;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:20px;${TS_ATTR}">${service}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?48:62}px;color:${fg};font-weight:300;line-height:1.05;${TS_ATTR}">${client}</div>
+        <div style="width:50px;height:1px;background:${accent};margin:20px 0;"></div>
+        <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:${fgd};line-height:1.6;${TS_ATTR}">${tagline}</div>
+        <div style="margin-top:auto;padding-top:40px;">
+          ${photographerBlock(accent,fgd,TS_ATTR)}
+        </div>
+      </div>
+    </div>`;
+    return div2;
+  } else if(layout==='split-left'){
+    // Texto à esquerda, foto à direita — sem imagem global no fundo
+    const imgHtml = imgs.cover
+      ? `<img src="${imgs.cover}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${coverImgPos};">
+         <div style="position:absolute;inset:0;background:${bg};opacity:${op*0.15};"></div>`
+      : `<div style="position:absolute;inset:0;background:${getAccentDark()};"></div>`;
+    const div2=document.createElement('div');
+    div2.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;display:flex;">
+      ${dateCorner}
+      <div style="flex:1;height:${H}px;background:${bg};display:flex;flex-direction:column;justify-content:center;padding:60px 50px;overflow:hidden;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:20px;${TS_ATTR}">${service}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?48:62}px;color:${fg};font-weight:300;line-height:1.05;${TS_ATTR}">${client}</div>
+        <div style="width:50px;height:1px;background:${accent};margin:20px 0;"></div>
+        <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:${fgd};line-height:1.6;${TS_ATTR}">${tagline}</div>
+        <div style="margin-top:auto;padding-top:40px;">
+          ${photographerBlock(accent,fgd,TS_ATTR)}
+        </div>
+      </div>
+      <div style="width:${Math.round(W*0.5)}px;height:${H}px;position:relative;overflow:hidden;flex-shrink:0;">${imgHtml}</div>
+    </div>`;
+    return div2;
+  } else if(layout==='centered'){
+    textBlock=`<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px;">
+      <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:22px;${TS_ATTR}">${service}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?56:72}px;color:${fg};font-weight:300;line-height:1.05;letter-spacing:2px;${TS_ATTR}">${client}</div>
+      <div style="width:60px;height:1px;background:${accent};margin:22px auto;"></div>
+      <div style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:2px;color:${fgd};font-weight:300;${TS_ATTR}">${tagline}</div>
+      <div style="position:absolute;bottom:52px;text-align:center;">
+        ${photographerBlock(accent,fgd,TS_ATTR)}
+      </div>
+    </div>`;
+  } else { // bottom / bottom-left / bottom-right (default)
+    const align = layout==='bottom-right' ? 'right' : layout==='bottom-left' ? 'left' : 'center';
+    const mAuto = align==='center' ? 'margin:18px auto;' : align==='right' ? 'margin:18px 0 18px auto;' : 'margin:18px 0;';
+    const phAlign = align==='center' ? 'justify-content:center;' : align==='right' ? 'justify-content:flex-end;' : '';
+    textBlock=`<div style="position:absolute;bottom:0;left:0;right:0;padding:50px 60px;background:${buildGradient('to top',bg)};">
+      <div style="text-align:${align};">
+        <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:14px;${TS_ATTR}">${service}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:${client.length>14?52:68}px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${client}</div>
+        <div style="width:50px;height:1px;background:${accent};${mAuto}"></div>
+        <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:1px;color:${fgd};${TS_ATTR}">${tagline}</div>
+        <div style="display:flex;align-items:flex-end;${phAlign}margin-top:16px;">
+          ${photographerBlock(accent,fgd,TS_ATTR)}
+        </div>
+      </div>
+    </div>`;
+  }
+  const div=document.createElement('div');
+  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;">
+    ${imgs.cover?`<img src="${imgs.cover}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${coverImgPos};">
+    <div style="position:absolute;inset:0;background:${bg};opacity:${op};"></div>`:''}
+    ${dateCorner}
+    ${textBlock}
+  </div>`;
+  return div;
+}
+
+function buildPkgPage(pkg, idx) {
+  const st=getTextStyle('pkg');
+  const TS_ATTR=`text-shadow:${st.textShadow};${st.outline}`;
+  const W=794,H=1123;
+  const layout=gv('pkg-layout')||'overlay';
+  const accent=getAccentColor(), accentD=getAccentDark();
+  const bg=themeColors.bg, fg=themeColors.text, fgd=themeColors.textDim;
+  const op=overlayOpacity();
+  const num=String(idx+1).padStart(2,'0');
+  const itemsHtml=pkg.items.map(it=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <div style="width:4px;height:4px;border-radius:50%;background:${accent};flex-shrink:0;"></div>
+    <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:${fgd};font-weight:300;letter-spacing:.5px;${TS_ATTR}">${it}</div>
+  </div>`).join('');
+  let inner='';
+  if(layout==='overlay'){
+    // Foto ocupa toda a página como background
+    inner=`${pkg.img?`<img src="${pkg.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pkg.imgPos||'50% 50%'};">
+      <div style="position:absolute;inset:0;background:${bg};opacity:${op};"></div>`:`<div style="position:absolute;inset:0;background:${bg}ee;"></div>`}
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;padding:70px 80px;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:8px;${TS_ATTR}">Pacote ${num}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:72px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${pkg.name}</div>
+        ${pkg.subtitle?`<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:${accent};margin-top:8px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
+        <div style="width:50px;height:1px;background:${accent};margin:28px 0;"></div>
+        <div style="flex:1;">${itemsHtml}</div>
+        <div style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.12);padding-top:28px;display:flex;align-items:baseline;justify-content:space-between;">
+          <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:2px;color:${fgd};text-transform:uppercase;${TS_ATTR}">A partir de</div>
+          <div style="font-family:'Montserrat',sans-serif;font-size:42px;color:${accent};font-weight:200;line-height:1;letter-spacing:3px;${TS_ATTR}">${pkg.price}</div>
+        </div>
+      </div>`;
+  } else if(layout==='split-right'){
+    // Foto à direita, texto à esquerda (fundo sólido)
+    const photoW=Math.round(W*0.48), textW=W-photoW;
+    inner=`<div style="position:absolute;inset:0;display:flex;">
+      <div style="width:${textW}px;height:${H}px;background:${bg};display:flex;flex-direction:column;padding:70px 52px;overflow:hidden;flex-shrink:0;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:8px;${TS_ATTR}">Pacote ${num}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:58px;color:${fg};font-weight:300;line-height:1;letter-spacing:1px;${TS_ATTR}">${pkg.name}</div>
+        ${pkg.subtitle?`<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:${accent};margin-top:6px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
+        <div style="width:40px;height:1px;background:${accent};margin:24px 0;"></div>
+        <div style="flex:1;">${itemsHtml}</div>
+        <div style="margin-top:auto;border-top:1px solid ${accent}33;padding-top:24px;">
+          <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:2px;color:${fgd};text-transform:uppercase;margin-bottom:4px;${TS_ATTR}">A partir de</div>
+          <div style="font-family:'Montserrat',sans-serif;font-size:38px;color:${accent};font-weight:200;line-height:1;letter-spacing:3px;${TS_ATTR}">${pkg.price}</div>
+        </div>
+      </div>
+      <div style="width:${photoW}px;height:${H}px;position:relative;overflow:hidden;">
+        ${pkg.img?`<img src="${pkg.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pkg.imgPos||'50% 50%'};">`:`<div style="position:absolute;inset:0;background:${accentD};"></div>`}
+      </div>
+    </div>`;
+  } else {
+    // split-left: foto à esquerda, texto à direita (fundo sólido)
+    const photoW=Math.round(W*0.48), textW=W-photoW;
+    inner=`<div style="position:absolute;inset:0;display:flex;">
+      <div style="width:${photoW}px;height:${H}px;position:relative;overflow:hidden;flex-shrink:0;">
+        ${pkg.img?`<img src="${pkg.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pkg.imgPos||'50% 50%'};">`:`<div style="position:absolute;inset:0;background:${accentD};"></div>`}
+      </div>
+      <div style="width:${textW}px;height:${H}px;background:${bg};display:flex;flex-direction:column;padding:70px 52px;overflow:hidden;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:8px;${TS_ATTR}">Pacote ${num}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:58px;color:${fg};font-weight:300;line-height:1;letter-spacing:1px;${TS_ATTR}">${pkg.name}</div>
+        ${pkg.subtitle?`<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:${accent};margin-top:6px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
+        <div style="width:40px;height:1px;background:${accent};margin:24px 0;"></div>
+        <div style="flex:1;">${itemsHtml}</div>
+        <div style="margin-top:auto;border-top:1px solid ${accent}33;padding-top:24px;">
+          <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:2px;color:${fgd};text-transform:uppercase;margin-bottom:4px;${TS_ATTR}">A partir de</div>
+          <div style="font-family:'Montserrat',sans-serif;font-size:38px;color:${accent};font-weight:200;line-height:1;letter-spacing:3px;${TS_ATTR}">${pkg.price}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const div=document.createElement('div');
+  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;">${inner}</div>`;
+  return div;
+}
+
+function buildTermsPage() {
+  const st=getTextStyle('terms');
+  const TS_ATTR=`text-shadow:${st.textShadow};${st.outline}`;
+  const W=794,H=1123;
+  const accent=getAccentColor();
+  const bg=themeColors.bg, fg=themeColors.text, fgd=themeColors.textDim;
+  const op=overlayOpacity();
+  const name=gv('f-name'), title=gv('f-title');
+  const termsHtml=terms.map(t=>`<div style="margin-bottom:22px;">
+    <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:${accent};margin-bottom:6px;${TS_ATTR}">${t.k}</div>
+    <div style="width:100%;height:.5px;background:${accent}44;margin-bottom:8px;"></div>
+    <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:${fgd};line-height:1.75;font-weight:300;${TS_ATTR}">${t.v}</div>
+  </div>`).join('');
+  const div=document.createElement('div');
+  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;display:flex;">
+    <div style="width:440px;height:${H}px;padding:80px 60px;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;">
+      <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:10px;${TS_ATTR}">Informações</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:48px;color:${fg};font-weight:300;line-height:1;margin-bottom:32px;${TS_ATTR}">Reserva</div>
+      <div style="flex:1;overflow:hidden;">${termsHtml}</div>
+    </div>
+    <div style="flex:1;height:${H}px;display:flex;flex-direction:column;">
+      <div style="flex:1;position:relative;overflow:hidden;">
+        ${imgs.reserva?`<img src="${imgs.reserva}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${reservaImgPos};">
+        <div style="position:absolute;inset:0;background:${bg};opacity:${op*0.3};"></div>`:`<div style="position:absolute;inset:0;background:${getAccentDark()};"></div>`}
+      </div>
+      <div style="padding:32px 44px;background:${bg};">
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:${accent};margin-bottom:4px;${TS_ATTR}">${name}</div>
+        <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:3px;color:${fgd};text-transform:uppercase;margin-bottom:20px;${TS_ATTR}">${title}</div>
+        <div style="width:30px;height:.5px;background:${accent};margin-bottom:20px;"></div>
+      </div>
+    </div>
+  </div>`;
+  return div;
+}
+
+function buildContactPage() {
+  const st=getTextStyle('contact');
+  const TS_ATTR=`text-shadow:${st.textShadow};${st.outline}`;
+  const W=794,H=1123;
+  const accent=getAccentColor();
+  const bg=themeColors.bg, fg=themeColors.text, fgd=themeColors.textDim;
+  const op=overlayOpacity();
+  const name=gv('f-name'), title=gv('f-title');
+
+  const contacts=[
+    {label:'Tel',     val:gv('f-phone')},
+    {label:'E-mail',  val:gv('f-email')},
+    {label:'Web',     val:gv('f-web')},
+    {label:'Instagram',val:gv('f-insta')},
+    {label:'Local',   val:gv('f-addr')},
+  ].filter(c=>c.val).map(c=>`
+    <div style="margin-bottom:18px;">
+      <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:3px;${TS_ATTR}">${c.label}</div>
+      <div style="font-family:'Montserrat',sans-serif;font-size:14px;color:${fg};font-weight:300;${TS_ATTR}">${c.val}</div>
+    </div>`).join('');
+
+  const div=document.createElement('div');
+  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;display:flex;">
+    <!-- Left: photo full-height -->
+    <div style="width:340px;height:${H}px;position:relative;overflow:hidden;flex-shrink:0;">
+      ${imgs.profile
+        ?`<img src="${imgs.profile}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${profileImgPos};">
+          <div style="position:absolute;inset:0;background:${bg};opacity:${op*0.2};"></div>`
+        :`<div style="position:absolute;inset:0;background:${getAccentDark()};"></div>`}
+      <div style="position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,${bg}dd,transparent);"></div>
+    </div>
+    <!-- Right: contact info -->
+    <div style="flex:1;height:${H}px;display:flex;flex-direction:column;justify-content:center;padding:80px 60px;background:${bg};">
+      <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:12px;${TS_ATTR}">Contato</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:52px;color:${fg};font-weight:300;line-height:1;margin-bottom:6px;${TS_ATTR}">${name}</div>
+      <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:32px;${TS_ATTR}">${title}</div>
+      <div style="width:40px;height:1px;background:${accent};margin-bottom:36px;"></div>
+      ${contacts}
+      <div style="margin-top:auto;padding-top:40px;border-top:1px solid ${accent}33;">
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:${fgd};${TS_ATTR}">${gv('f-tagline')}</div>
+      </div>
+    </div>
+  </div>`;
+  return div;
+}
+
+// ── Preview system ─────────────────────────────────────────────────────────────
+function schedulePreview(){
+  clearTimeout(previewTimer);
+  previewTimer=setTimeout(()=>{
+    // When editing the free cover layout, always show the cover page in the lateral preview
+    if(coverLayoutMode === 'free') currentPage = 0;
+    renderPreview();
+    updateCoverInlinePreview();
+  },250);
+}
+
+// Renders buildCoverPage() scaled into the inline preview inside section 03.
+// Uses the same builder as the PDF — zero duplication.
+function updateCoverInlinePreview() {
+  const wrap = document.getElementById('cover-preview-wrap');
+  const inner = document.getElementById('cover-preview-inner');
+  if(!wrap || !inner) return;
+
+  // Force a layout recalculation — clientWidth can be 0 if section is off-screen
+  // offsetWidth is more reliable as it works regardless of scroll position
+  const displayW = wrap.offsetWidth || wrap.clientWidth || wrap.getBoundingClientRect().width || 460;
+  const scale = displayW / 794;
+  inner.style.transform = `scale(${scale})`;
+
+  // Rebuild cover page HTML into the inner container
+  setTheme();
+  const built = buildCoverPage();
+  const pageEl = built.firstChild;
+  pageEl.style.width  = '794px';
+  pageEl.style.height = '1123px';
+  pageEl.style.overflow = 'hidden';
+  inner.innerHTML = '';
+  inner.appendChild(pageEl);
+}
+
+function getAllPages() {
+  setTheme();
+  const pages=[];
+  pages.push({label:'Capa', builder:()=>buildCoverPage()});
+  pkgs.forEach((p,i)=>pages.push({label:`Pacote ${i+1}`, builder:()=>buildPkgPage(p,i)}));
+  pages.push({label:'Reserva', builder:()=>buildTermsPage()});
+  // Gallery — may produce multiple pages automatically
+  const galBuilders = buildGalleryPages();
+  galBuilders.forEach((fn, idx) => {
+    pages.push({label: galBuilders.length > 1 ? `Galeria ${idx+1}` : 'Galeria', builder: fn});
+  });
+  pages.push({label:'Contato', builder:()=>buildContactPage()});
+  return pages;
+}
+
+function renderPreview() {
+  const pages=getAllPages();
+  if(currentPage>=pages.length) currentPage=pages.length-1;
+  if(currentPage<0) currentPage=0;
+  document.getElementById('pnav-info').textContent=`${pages[currentPage].label} (${currentPage+1}/${pages.length})`;
+  document.getElementById('gen-hint').textContent=`${pages.length} páginas · Pacotes: ${pkgs.length}`;
+
+  const SCALE=460/794;
+  const PW=Math.round(794*SCALE), PH=Math.round(1123*SCALE);
+  const container=document.getElementById('preview-container');
+  container.style.width=PW+'px';
+  container.style.height=PH+'px';
+  container.style.overflow='hidden';
+  container.style.position='relative';
+  container.innerHTML='';
+
+  // Render page at full 794x1123, then scale down with CSS transform
+  const pageDiv=pages[currentPage].builder();
+  const inner=pageDiv.firstChild;
+  // Ensure the page element has correct fixed dimensions (in case builder forgets)
+  inner.style.width='794px';
+  inner.style.height='1123px';
+  inner.style.overflow='hidden';
+
+  const scaleWrap=document.createElement('div');
+  scaleWrap.style.cssText=`position:absolute;top:0;left:0;width:794px;height:1123px;transform:scale(${SCALE});transform-origin:top left;overflow:hidden;`;
+  scaleWrap.appendChild(inner);
+  container.appendChild(scaleWrap);
+}
+
+function prevPage(){ currentPage=Math.max(0,currentPage-1); renderPreview(); }
+function nextPage(){ const p=getAllPages(); currentPage=Math.min(p.length-1,currentPage+1); renderPreview(); }
+
+// ── PDF Generation ─────────────────────────────────────────────────────────────
+
+// Draw an image with object-fit:cover behaviour onto a canvas
+function drawImageCover(ctx, img, x, y, w, h, posX, posY) {
+  // posX/posY are percentages (e.g. "50% 50%" → 0.5, 0.5)
+  const px = parseFloat(posX||'50') / 100;
+  const py = parseFloat(posY||'50') / 100;
+  const iw = img.naturalWidth  || img.width;
+  const ih = img.naturalHeight || img.height;
+  const scale = Math.max(w / iw, h / ih);
+  const sw = iw * scale, sh = ih * scale;
+  const dx = x + (w - sw) * px;
+  const dy = y + (h - sh) * py;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.drawImage(img, dx, dy, sw, sh);
+  ctx.restore();
+}
+
+// Read a px value from an inline style string, e.g. "width:340px" -> 340
+function parsePx(styleStr, prop) {
+  if (!styleStr) return null;
+  const parts = styleStr.split(';');
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i].trim();
+    const colon = p.indexOf(':');
+    if (colon < 0) continue;
+    const key = p.slice(0, colon).trim();
+    const val = p.slice(colon + 1).trim();
+    if (key === prop && val.endsWith('px')) {
+      const n = parseFloat(val);
+      if (!isNaN(n) && n > 0) return n;
+    }
+  }
+  return null;
+}
+
+// Walk up DOM to find first ancestor with explicit width+height in inline style
+function getContainerSize(imgEl) {
+  let w = parsePx(imgEl.getAttribute('style'), 'width');
+  let h = parsePx(imgEl.getAttribute('style'), 'height');
+  // Logo case: height set but width:auto — compute width from natural aspect ratio
+  if (!w && h) {
+    const iw = imgEl.naturalWidth || imgEl.width;
+    const ih = imgEl.naturalHeight || imgEl.height;
+    if (iw && ih) w = Math.round(iw * h / ih);
+  }
+  if (w && h) return {w, h};
+  let el = imgEl.parentElement;
+  while (el) {
+    const s = el.getAttribute('style') || '';
+    w = parsePx(s, 'width');
+    h = parsePx(s, 'height');
+    if (w && h) return {w, h};
+    el = el.parentElement;
+  }
+  return {w: imgEl.naturalWidth || 300, h: imgEl.naturalHeight || 200};
+}
+
+// Replace all <img> tags inside a DOM element with <canvas> drawn with correct cover crop.
+// dpr = device pixel ratio to use for the canvas backing store (must match html2canvas scale).
+async function replaceImgsWithCanvas(rootEl, dpr) {
+  dpr = dpr || 1;
+  const imgEls = Array.from(rootEl.querySelectorAll('img'));
+  const loads = imgEls.map(imgEl => new Promise(res => {
+    const src = imgEl.src;
+    if (!src) return res();
+    const {w, h} = getContainerSize(imgEl);
+    const pos = (imgEl.style.objectPosition || '50% 50%').split(' ');
+    const posX = pos[0] || '50%';
+    const posY = pos[1] || '50%';
+    const image = new Image();
+    image.onload = () => {
+      const cv = document.createElement('canvas');
+      // Physical pixels = layout pixels × dpr — this is the key fix for sharpness
+      cv.width  = Math.round(w * dpr);
+      cv.height = Math.round(h * dpr);
+      const ctx = cv.getContext('2d');
+      ctx.scale(dpr, dpr);
+      drawImageCover(ctx, image, 0, 0, w, h, posX, posY);
+      // CSS size stays at layout pixels so html2canvas positions it correctly
+      cv.style.cssText = imgEl.getAttribute('style') || '';
+      cv.style.width  = w + 'px';
+      cv.style.height = h + 'px';
+      cv.style.display = 'block';
+      imgEl.parentNode.replaceChild(cv, imgEl);
+      res();
+    };
+    image.onerror = () => res();
+    image.src = src;
+  }));
+  await Promise.all(loads);
+}
+
+async function generatePDF() {
+  const btn=document.getElementById('btn-gen'), spin=document.getElementById('spin'), pbar=document.getElementById('pbar');
+  btn.disabled=true; spin.classList.add('on'); pbar.classList.add('on'); setP(5);
+  toast('Gerando PDF...');
+  try {
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'px',format:'a4'});
+    const PW=pdf.internal.pageSize.getWidth(), PH=pdf.internal.pageSize.getHeight();
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-9999px;top:0;pointer-events:none;width:794px;';
+    document.body.appendChild(wrap);
+    setTheme();
+    const pages=getAllPages();
+
+    // Scale factor for html2canvas.
+    // 3× gives a 2382×3369 canvas — close to 300 DPI on A4 and well within
+    // browser canvas limits (~16384px). Increase to 4 only if images are very
+    // large and the browser supports it; 3 is the safe high-quality default.
+    const RENDER_SCALE = 3;
+
+    for(let i=0;i<pages.length;i++){
+      setP(8+Math.round(i/pages.length*88));
+      toast(`Renderizando: ${pages[i].label} (${i+1}/${pages.length})...`);
+      const div=pages[i].builder();
+      const pageEl=div.firstChild;
+      pageEl.style.width='794px';
+      pageEl.style.height='1123px';
+      pageEl.style.overflow='hidden';
+      wrap.appendChild(pageEl);
+      // Let layout settle
+      await new Promise(r=>setTimeout(r,60));
+      // Pre-draw every <img> onto a high-res canvas (same dpr as RENDER_SCALE)
+      // so html2canvas captures full-resolution pixels, not upscaled bitmaps.
+      await replaceImgsWithCanvas(wrap.firstChild, RENDER_SCALE);
+      await new Promise(r=>setTimeout(r,60));
+      const cv=await html2canvas(wrap.firstChild,{
+        scale: RENDER_SCALE,
+        backgroundColor:themeColors.bg,
+        useCORS:false,
+        logging:false,
+        allowTaint:true,
+        imageTimeout:0,
+        foreignObjectRendering:false
+      });
+      if(i>0) pdf.addPage();
+      // Use PNG for lossless quality; fall back to high-quality JPEG only if
+      // the canvas is very large to keep file size manageable.
+      const dataUrl = cv.toDataURL('image/jpeg', 0.97);
+      pdf.addImage(dataUrl,'JPEG',0,0,PW,PH);
+      wrap.innerHTML='';
+    }
+    document.body.removeChild(wrap);
+    setP(100);
+    const nm=(gv('f-client')||gv('f-name')).replace(/\s+/g,'_').replace(/[&]/g,'e')||'proposta';
+    pdf.save(`editorial_${nm}.pdf`);
+    toast('PDF gerado com sucesso!');
+  } catch(e){ toast('Erro: '+e.message); console.error(e); }
+  finally { btn.disabled=false; spin.classList.remove('on'); setTimeout(()=>{pbar.classList.remove('on');setP(0);},2500); }
+}
+
+// ── Reposition modal ────────────────────────────────────────────────────────────
+var reposTarget = null;
+var reposPendingPos = '50% 50%';
+
+function openRepos(type, pi) {
+  var src;
+  if(type==='cover') src=imgs.cover;
+  else if(type==='profile') src=imgs.profile;
+  else if(type==='reserva') src=imgs.reserva;
+  else if(type==='gal') src=galPhotos[pi]?.src;
+  else src=pkgs[pi]?.img;
+  if(!src) return;
+  reposTarget={type,pi};
+  var currentPos;
+  if(type==='cover') currentPos=coverImgPos;
+  else if(type==='profile') currentPos=profileImgPos;
+  else if(type==='reserva') currentPos=reservaImgPos;
+  else if(type==='gal') currentPos=galPhotos[pi]?.pos||'50% 50%';
+  else currentPos=pkgs[pi]?.imgPos||'50% 50%';
+  var modal=document.getElementById('repos-modal');
+  var imgEl=document.getElementById('repos-img');
+  var cross=document.getElementById('repos-cross');
+  imgEl.src=src;
+  modal.classList.remove('hide');
+  var parts=currentPos.split(' ');
+  var px=parseFloat(parts[0])||50, py=parseFloat(parts[1])||50;
+  reposPendingPos=currentPos;
+  imgEl.onload=function(){ cross.style.left=px+'%'; cross.style.top=py+'%'; };
+  if(imgEl.complete){ cross.style.left=px+'%'; cross.style.top=py+'%'; }
+}
+
+function applyRepos(e) {
+  var wrap=document.getElementById('repos-wrap');
+  var rect=wrap.getBoundingClientRect();
+  var clientX, clientY;
+  if(e.touches && e.touches.length>0){ clientX=e.touches[0].clientX; clientY=e.touches[0].clientY; }
+  else if(e.changedTouches && e.changedTouches.length>0){ clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY; }
+  else { clientX=e.clientX; clientY=e.clientY; }
+  var px=Math.round(((clientX-rect.left)/rect.width)*100);
+  var py=Math.round(((clientY-rect.top)/rect.height)*100);
+  px=Math.max(0,Math.min(100,px)); py=Math.max(0,Math.min(100,py));
+  reposPendingPos=px+'% '+py+'%';
+  var cross=document.getElementById('repos-cross');
+  cross.style.left=px+'%'; cross.style.top=py+'%';
+}
+
+function confirmRepos() {
+  if(!reposTarget) return;
+  const {type,pi}=reposTarget;
+  if(type==='cover') coverImgPos=reposPendingPos;
+  else if(type==='profile'){ profileImgPos=reposPendingPos; }
+  else if(type==='reserva'){ reservaImgPos=reposPendingPos; }
+  else if(type==='gal'){ galPhotos[pi].pos=reposPendingPos; rGallery(); }
+  else { pkgs[pi].imgPos=reposPendingPos; rPkgs(); }
+  closeRepos();
+  schedulePreview();
+  toast('Posição aplicada!');
+}
+
+function closeRepos() {
+  document.getElementById('repos-modal').classList.add('hide');
+  reposTarget=null;
+}
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(a=>{
+  a.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('on'));
+    a.classList.add('on');
+  });
+});
+
+// Init — defer preview until after all DOM elements (pkgs/terms) are rendered
+setTheme();
+initContrastUIs();
+
+// Re-render gallery editor when section becomes visible
+(function(){
+  var s6 = document.getElementById('s6');
+  if(!s6) return;
+  // IntersectionObserver: fires when section scrolls into view
+  if(typeof IntersectionObserver !== 'undefined'){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting && galPhotos.length){ rGallery(); }
+      });
+    }, {threshold:0.1});
+    io.observe(s6);
+  }
+  // ResizeObserver on editor as backup
+  var galEl = document.getElementById('gal-editor');
+  if(galEl && typeof ResizeObserver!=='undefined'){
+    var ro = new ResizeObserver(function(entries){
+      for(var e of entries){
+        if(e.contentRect.width > 50 && galPhotos.length){ rGallery(); break; }
+      }
+    });
+    ro.observe(galEl);
+  }
+})();
+
+// ResizeObserver: re-scale inline cover preview when container width changes
+(function(){
+  var wrap = document.getElementById('cover-preview-wrap');
+  if(wrap && typeof ResizeObserver !== 'undefined'){
+    new ResizeObserver(function(){ updateCoverInlinePreview(); }).observe(wrap);
+  }
+  // Also re-scale the free canvas editor when its container resizes
+  var fwrap = document.getElementById('free-canvas-wrap');
+  if(fwrap && typeof ResizeObserver !== 'undefined'){
+    new ResizeObserver(function(){ fbScaleCanvas(); }).observe(fwrap);
+  }
+})();
+// Set initial active layout thumbs
+setCoverLayout('bottom', document.querySelector('#layout-presets [data-layout="bottom"]'));
+setPkgLayout('overlay', document.querySelector('#pkg-layout-presets [data-pkg="overlay"]'));
+// Use requestAnimationFrame to ensure rPkgs/rTerms/rGallery have finished painting
+requestAnimationFrame(() => { setTimeout(()=>{ renderPreview(); updateCoverInlinePreview(); }, 50); });
+</script>
+</body>
+</html>
