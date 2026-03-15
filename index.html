@@ -339,11 +339,35 @@ input[type=range]{accent-color:var(--gold);}
     position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
   }
 
-  /* ── Prévia: botões de navegação maiores ── */
-  .preview-panel { padding: 14px; }
-  .preview-panel-head { flex-direction: column; gap: 10px; align-items: flex-start; }
-  .pnav-btn { padding: 8px 18px; font-size: 16px; min-width: 44px; min-height: 40px; }
-  .pnav-info { font-size: 12px; }
+  /* ── Prévia em tempo real: layout mobile ── */
+  .preview-panel { padding: 12px; }
+  .preview-panel-head {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .preview-panel-title { font-size: 8px; letter-spacing: 2px; white-space: nowrap; }
+  .preview-page-nav { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .pnav-btn {
+    padding: 0;
+    width: 44px; height: 44px;
+    font-size: 22px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px;
+    min-width: 44px; min-height: 44px;
+  }
+  .pnav-info { font-size: 11px; white-space: nowrap; }
+  /* Preview container: ocupa 100% da largura disponível no mobile */
+  #preview-container {
+    width: 100% !important;
+    transform-origin: top left;
+  }
+  #preview-container .pdf-page {
+    transform-origin: top left;
+  }
 
   /* ── Layout thumbnails maiores para toque ── */
   .layout-thumb { width: 70px; height: 50px; }
@@ -532,8 +556,8 @@ input[type=range]{accent-color:var(--gold);}
       </select>
     </div>
     <div class="f">
-      <label>Opacidade do overlay — <span id="overlay-op-val">55</span>%</label>
-      <input type="range" id="overlay-opacity" min="0" max="95" value="55"
+      <label>Opacidade do overlay — <span id="overlay-op-val">80</span>%</label>
+      <input type="range" id="overlay-opacity" min="0" max="95" value="80"
         oninput="document.getElementById('overlay-op-val').textContent=this.value;schedulePreview()"
         style="width:100%;margin-top:6px;accent-color:var(--gold);">
     </div>
@@ -957,7 +981,6 @@ input[type=range]{accent-color:var(--gold);}
 
 <div style="height:60px"></div>
 <div class="gen-bar">
-  <div class="mobile-pdf-notice">⚠️ A geração de PDF é pesada para celulares.<br>Preencha aqui e <b>gere o PDF no computador</b>.</div>
   <div>
     <span class="gen-hint" id="gen-hint">Pronto para gerar</span>
     <div class="pbar" id="pbar"><div class="pfill" id="pfill"></div></div>
@@ -986,10 +1009,32 @@ input[type=range]{accent-color:var(--gold);}
 </div>
 
 <script>
-// Suppress benign ResizeObserver loop notifications (browser warning, not a real error)
+// ── Suppress ResizeObserver loop notifications (harmless browser warning) ────
+// Intercepta nas 3 formas que diferentes browsers lançam esse erro
 window.addEventListener('error', function(e){
-  if(e.message && e.message.includes('ResizeObserver')) e.stopImmediatePropagation();
+  if(e.message && e.message.includes('ResizeObserver')){
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    return false;
+  }
+}, true); // capture phase
+window.addEventListener('unhandledrejection', function(e){
+  if(e.reason && String(e.reason).includes('ResizeObserver')){
+    e.stopImmediatePropagation();
+    e.preventDefault();
+  }
 });
+// Patch nativo: envolve ResizeObserver num requestAnimationFrame para evitar o loop
+(function(){
+  if(typeof ResizeObserver === 'undefined') return;
+  var RO = ResizeObserver;
+  window.ResizeObserver = function(cb){
+    return new RO(function(entries, observer){
+      requestAnimationFrame(function(){ cb(entries, observer); });
+    });
+  };
+  window.ResizeObserver.prototype = RO.prototype;
+})();
 // ── State ────────────────────────────────────────────────────────────────────
 var imgs = {};
 var identityMode = 'text'; // 'text' | 'logo'
@@ -2910,19 +2955,22 @@ function renderPreview() {
   document.getElementById('pnav-info').textContent=`${pages[currentPage].label} (${currentPage+1}/${pages.length})`;
   document.getElementById('gen-hint').textContent=`${pages.length} páginas · Pacotes: ${pkgs.length}`;
 
-  const SCALE=460/794;
-  const PW=Math.round(794*SCALE), PH=Math.round(1123*SCALE);
   const container=document.getElementById('preview-container');
+  // Escala responsiva: se cabe até 460px no desktop, no mobile ocupa a largura do painel
+  const panel=container.parentElement;
+  const panelW=panel ? panel.clientWidth - 28 : 460;
+  const availW=Math.min(panelW, 460);
+  const SCALE=availW/794;
+  const PW=Math.round(794*SCALE), PH=Math.round(1123*SCALE);
+
   container.style.width=PW+'px';
   container.style.height=PH+'px';
   container.style.overflow='hidden';
   container.style.position='relative';
   container.innerHTML='';
 
-  // Render page at full 794x1123, then scale down with CSS transform
   const pageDiv=pages[currentPage].builder();
   const inner=pageDiv.firstChild;
-  // Ensure the page element has correct fixed dimensions (in case builder forgets)
   inner.style.width='794px';
   inner.style.height='1123px';
   inner.style.overflow='hidden';
@@ -3203,6 +3251,15 @@ initContrastUIs();
   var fwrap = document.getElementById('free-canvas-wrap');
   if(fwrap && typeof ResizeObserver !== 'undefined'){
     new ResizeObserver(function(){ fbScaleCanvas(); }).observe(fwrap);
+  }
+  // Re-render preview when panel width changes (mobile resize / orientation change)
+  var previewPanel = document.getElementById('preview');
+  if(previewPanel && typeof ResizeObserver !== 'undefined'){
+    var _prevW = 0;
+    new ResizeObserver(function(){
+      var w = previewPanel.clientWidth;
+      if(Math.abs(w - _prevW) > 10){ _prevW = w; renderPreview(); }
+    }).observe(previewPanel);
   }
 })();
 // Set initial active layout thumbs
