@@ -178,15 +178,18 @@ input[type=color]{width:28px;height:28px;border:none;border-radius:50%;cursor:po
 
 /* Layout thumbnails */
 .layout-thumb{
-  position:relative;width:72px;height:50px;border:1.5px solid var(--border);
+  position:relative;width:72px;height:58px;border:1.5px solid var(--border);
   border-radius:3px;cursor:pointer;transition:all .15s;overflow:hidden;
   background:var(--surface2);color:var(--muted);
+  padding-bottom:16px; /* reserva espaço para a label */
 }
 .layout-thumb:hover{border-color:var(--gold);color:var(--text);}
 .layout-thumb.active{border-color:var(--gold);background:rgba(201,169,110,.08);color:var(--gold);}
 .lt-label{
-  position:absolute;bottom:3px;left:0;right:0;text-align:center;
+  position:absolute;bottom:0;left:0;right:0;text-align:center;
   font-size:7px;letter-spacing:1px;text-transform:uppercase;font-family:'Montserrat',sans-serif;
+  height:16px;line-height:16px;
+  background:rgba(0,0,0,.25); /* fundo sutil para separar da arte */
 }
 
 /* Free layout draggable blocks */
@@ -416,7 +419,7 @@ input[type=range]{accent-color:var(--gold);}
   .ctab-btn { flex-shrink: 0; padding: 9px 12px; font-size: 9px; min-height: 40px; }
 
   /* Thumb dos blocos de layout de pacote */
-  #pkg-layout-presets { gap: 6px; }
+  #pkg-layout-presets { grid-template-columns: repeat(5, 1fr) !important; gap: 4px; }
 
   /* Free canvas: desabilita drag no mobile (muito difícil com touch), mostra aviso */
   #free-canvas { touch-action: none; }
@@ -606,7 +609,7 @@ input[type=range]{accent-color:var(--gold);}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;" id="layout-presets">
 
       <!-- Row 1: Centralizado + Superior -->
-      <div class="layout-thumb" data-layout="centered" onclick="setCoverLayout('centered',this)" title="Centralizado">
+      <div class="layout-thumb active" data-layout="centered" onclick="setCoverLayout('centered',this)" title="Centralizado">
         <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:80%;">
           <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
           <div style="height:3px;background:currentColor;margin:2px auto;width:70%;border-radius:1px;"></div>
@@ -637,22 +640,22 @@ input[type=range]{accent-color:var(--gold);}
       </div>
 
       <!-- Row 2: Base variações -->
-      <div class="layout-thumb active" data-layout="bottom" onclick="setCoverLayout('bottom',this)" title="Base">
-        <div style="position:absolute;bottom:12%;left:50%;transform:translateX(-50%);text-align:center;width:80%;">
+      <div class="layout-thumb" data-layout="bottom" onclick="setCoverLayout('bottom',this)" title="Base">
+        <div style="position:absolute;bottom:21px;left:50%;transform:translateX(-50%);text-align:center;width:80%;">
           <div style="height:3px;background:currentColor;margin:2px auto;width:70%;border-radius:1px;"></div>
           <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
         </div>
         <div class="lt-label">Base</div>
       </div>
       <div class="layout-thumb" data-layout="bottom-left" onclick="setCoverLayout('bottom-left',this)" title="Base Esquerda">
-        <div style="position:absolute;bottom:12%;left:8%;width:75%;">
+        <div style="position:absolute;bottom:21px;left:8%;width:75%;">
           <div style="height:3px;background:currentColor;margin:2px 0;width:70%;border-radius:1px;"></div>
           <div style="height:2px;background:currentColor;margin:3px 0;width:50%;"></div>
         </div>
         <div class="lt-label">Base Esq.</div>
       </div>
       <div class="layout-thumb" data-layout="bottom-right" onclick="setCoverLayout('bottom-right',this)" title="Base Direita">
-        <div style="position:absolute;bottom:12%;right:8%;width:75%;text-align:right;">
+        <div style="position:absolute;bottom:21px;right:8%;width:75%;text-align:right;">
           <div style="height:3px;background:currentColor;margin:2px 0 2px auto;width:70%;border-radius:1px;"></div>
           <div style="height:2px;background:currentColor;margin:3px 0 3px auto;width:50%;"></div>
         </div>
@@ -661,7 +664,7 @@ input[type=range]{accent-color:var(--gold);}
       <div class="layout-thumb" data-layout="free" onclick="setCoverLayout('free',this)" title="Livre">
         <div style="position:absolute;top:30%;left:20%;font-size:9px;color:currentColor;opacity:.7;">Aa</div>
         <div style="position:absolute;top:55%;left:40%;font-size:7px;color:currentColor;opacity:.5;">Aa</div>
-        <div style="position:absolute;bottom:18%;right:15%;font-size:6px;color:currentColor;opacity:.4;">Aa</div>
+        <div style="position:absolute;bottom:22px;right:15%;font-size:6px;color:currentColor;opacity:.4;">Aa</div>
         <div class="lt-label">Livre ✦</div>
       </div>
 
@@ -776,7 +779,9 @@ input[type=range]{accent-color:var(--gold);}
     <!-- Pkg layout -->
     <div style="margin-top:16px;">
       <div style="font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Layout dos Pacotes</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;" id="pkg-layout-presets">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;" id="pkg-layout-presets">
+
+        <!-- Fila 1: layouts de texto sobre foto -->
         <div class="layout-thumb active" data-pkg="overlay" onclick="setPkgLayout('overlay',this)" title="Foto como background completo">
           <div style="position:absolute;inset:0;background:rgba(255,255,255,.06);display:flex;align-items:flex-end;padding:5px;">
             <div style="width:100%;"><div style="height:2px;background:currentColor;width:60%;margin-bottom:2px;"></div>
@@ -793,7 +798,7 @@ input[type=range]{accent-color:var(--gold);}
             </div>
             <div style="width:46%;background:rgba(255,255,255,.12);"></div>
           </div>
-          <div class="lt-label">Texto | Foto</div>
+          <div class="lt-label">Texto|Foto</div>
         </div>
         <div class="layout-thumb" data-pkg="split-left" onclick="setPkgLayout('split-left',this)" title="Foto à esquerda, texto à direita">
           <div style="position:absolute;inset:0;display:flex;">
@@ -804,8 +809,73 @@ input[type=range]{accent-color:var(--gold);}
               <div style="height:2px;background:currentColor;width:60%;"></div>
             </div>
           </div>
-          <div class="lt-label">Foto | Texto</div>
+          <div class="lt-label">Foto|Texto</div>
         </div>
+
+        <!-- Central -->
+        <div class="layout-thumb" data-pkg="pkg-centered" onclick="setPkgLayout('pkg-centered',this)" title="Texto centralizado sobre foto">
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:80%;">
+            <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
+            <div style="height:3px;background:currentColor;margin:2px auto;width:70%;border-radius:1px;"></div>
+            <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
+          </div>
+          <div class="lt-label">Central</div>
+        </div>
+
+        <!-- Superior -->
+        <div class="layout-thumb" data-pkg="pkg-top" onclick="setPkgLayout('pkg-top',this)" title="Texto no topo sobre foto">
+          <div style="position:absolute;top:12%;left:50%;transform:translateX(-50%);text-align:center;width:80%;">
+            <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
+            <div style="height:3px;background:currentColor;margin:2px auto;width:70%;border-radius:1px;"></div>
+          </div>
+          <div class="lt-label">Superior</div>
+        </div>
+
+        <!-- Superior Esq -->
+        <div class="layout-thumb" data-pkg="pkg-top-left" onclick="setPkgLayout('pkg-top-left',this)" title="Texto superior esquerda sobre foto">
+          <div style="position:absolute;top:12%;left:8%;width:75%;">
+            <div style="height:2px;background:currentColor;margin:3px 0;width:50%;"></div>
+            <div style="height:3px;background:currentColor;margin:2px 0;width:70%;border-radius:1px;"></div>
+          </div>
+          <div class="lt-label">Sup.Esq.</div>
+        </div>
+
+        <!-- Superior Dir -->
+        <div class="layout-thumb" data-pkg="pkg-top-right" onclick="setPkgLayout('pkg-top-right',this)" title="Texto superior direita sobre foto">
+          <div style="position:absolute;top:12%;right:8%;width:75%;text-align:right;">
+            <div style="height:2px;background:currentColor;margin:3px 0 3px auto;width:50%;"></div>
+            <div style="height:3px;background:currentColor;margin:2px 0 2px auto;width:70%;border-radius:1px;"></div>
+          </div>
+          <div class="lt-label">Sup.Dir.</div>
+        </div>
+
+        <!-- Base -->
+        <div class="layout-thumb" data-pkg="pkg-bottom" onclick="setPkgLayout('pkg-bottom',this)" title="Texto na base sobre foto">
+          <div style="position:absolute;bottom:21px;left:50%;transform:translateX(-50%);text-align:center;width:80%;">
+            <div style="height:3px;background:currentColor;margin:2px auto;width:70%;border-radius:1px;"></div>
+            <div style="height:2px;background:currentColor;margin:3px auto;width:50%;"></div>
+          </div>
+          <div class="lt-label">Base</div>
+        </div>
+
+        <!-- Base Esq -->
+        <div class="layout-thumb" data-pkg="pkg-bottom-left" onclick="setPkgLayout('pkg-bottom-left',this)" title="Texto base esquerda sobre foto">
+          <div style="position:absolute;bottom:21px;left:8%;width:75%;">
+            <div style="height:3px;background:currentColor;margin:2px 0;width:70%;border-radius:1px;"></div>
+            <div style="height:2px;background:currentColor;margin:3px 0;width:50%;"></div>
+          </div>
+          <div class="lt-label">Base Esq.</div>
+        </div>
+
+        <!-- Base Dir -->
+        <div class="layout-thumb" data-pkg="pkg-bottom-right" onclick="setPkgLayout('pkg-bottom-right',this)" title="Texto base direita sobre foto">
+          <div style="position:absolute;bottom:21px;right:8%;width:75%;text-align:right;">
+            <div style="height:3px;background:currentColor;margin:2px 0 2px auto;width:70%;border-radius:1px;"></div>
+            <div style="height:2px;background:currentColor;margin:3px 0 3px auto;width:50%;"></div>
+          </div>
+          <div class="lt-label">Base Dir.</div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -2792,8 +2862,8 @@ function buildPkgPage(pkg, idx) {
         ${pkg.img?`<img src="${pkg.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pkg.imgPos||'50% 50%'};">`:`<div style="position:absolute;inset:0;background:${accentD};"></div>`}
       </div>
     </div>`;
-  } else {
-    // split-left: foto à esquerda, texto à direita (fundo sólido)
+  } else if(layout==='split-left'){
+    // foto à esquerda, texto à direita (fundo sólido)
     const photoW=Math.round(W*0.48), textW=W-photoW;
     inner=`<div style="position:absolute;inset:0;display:flex;">
       <div style="width:${photoW}px;height:${H}px;position:relative;overflow:hidden;flex-shrink:0;">
@@ -2811,6 +2881,34 @@ function buildPkgPage(pkg, idx) {
         </div>
       </div>
     </div>`;
+  } else {
+    // ── layouts "texto sobre foto" com posição variável ──────────────────────
+    const positions = {
+      'pkg-centered':     { justify:'center', align:'center',     textAlign:'center',  pad:'60px 80px' },
+      'pkg-top':          { justify:'flex-start', align:'center', textAlign:'center',  pad:'70px 80px 60px' },
+      'pkg-top-left':     { justify:'flex-start', align:'flex-start', textAlign:'left',pad:'70px 80px 60px' },
+      'pkg-top-right':    { justify:'flex-start', align:'flex-end',   textAlign:'right',pad:'70px 80px 60px' },
+      'pkg-bottom':       { justify:'flex-end',   align:'center', textAlign:'center',  pad:'60px 80px 70px' },
+      'pkg-bottom-left':  { justify:'flex-end',   align:'flex-start', textAlign:'left',pad:'60px 80px 70px' },
+      'pkg-bottom-right': { justify:'flex-end',   align:'flex-end',   textAlign:'right',pad:'60px 80px 70px' },
+    };
+    const p = positions[layout] || positions['pkg-centered'];
+    const marginAuto = p.align==='center' ? 'margin-left:auto;margin-right:auto;' : p.align==='flex-end' ? 'margin-left:auto;' : '';
+    inner=`${pkg.img?`<img src="${pkg.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pkg.imgPos||'50% 50%'};">
+      <div style="position:absolute;inset:0;background:${bg};opacity:${op};"></div>`:`<div style="position:absolute;inset:0;background:${bg}ee;"></div>`}
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:${p.justify};align-items:${p.align};padding:${p.pad};text-align:${p.textAlign};">
+        <div style="${marginAuto}">
+          <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:8px;${TS_ATTR}">Pacote ${num}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:72px;color:${fg};font-weight:300;line-height:1;letter-spacing:2px;${TS_ATTR}">${pkg.name}</div>
+          ${pkg.subtitle?`<div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:${accent};margin-top:8px;${TS_ATTR}">${pkg.subtitle}</div>`:''}
+          <div style="width:50px;height:1px;background:${accent};margin:24px ${p.align==='center'?'auto':p.align==='flex-end'?'0 0 auto':'0'};"></div>
+          <div>${itemsHtml}</div>
+          <div style="margin-top:24px;border-top:1px solid rgba(255,255,255,0.12);padding-top:20px;display:flex;align-items:baseline;gap:16px;justify-content:${p.align==='flex-end'?'flex-end':p.align==='center'?'center':'flex-start'};">
+            <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:2px;color:${fgd};text-transform:uppercase;${TS_ATTR}">A partir de</div>
+            <div style="font-family:'Montserrat',sans-serif;font-size:42px;color:${accent};font-weight:200;line-height:1;letter-spacing:3px;${TS_ATTR}">${pkg.price}</div>
+          </div>
+        </div>
+      </div>`;
   }
   const div=document.createElement('div');
   div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;">${inner}</div>`;
@@ -3263,7 +3361,7 @@ initContrastUIs();
   }
 })();
 // Set initial active layout thumbs
-setCoverLayout('bottom', document.querySelector('#layout-presets [data-layout="bottom"]'));
+setCoverLayout('centered', document.querySelector('#layout-presets [data-layout="centered"]'));
 setPkgLayout('overlay', document.querySelector('#pkg-layout-presets [data-pkg="overlay"]'));
 // Use requestAnimationFrame to ensure rPkgs/rTerms/rGallery have finished painting
 requestAnimationFrame(() => { setTimeout(()=>{ renderPreview(); updateCoverInlinePreview(); }, 50); });
