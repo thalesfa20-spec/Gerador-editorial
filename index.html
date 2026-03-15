@@ -2928,23 +2928,30 @@ function buildTermsPage() {
     <div style="width:100%;height:.5px;background:${accent}44;margin-bottom:8px;"></div>
     <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:${fgd};line-height:1.75;font-weight:300;${TS_ATTR}">${t.v}</div>
   </div>`).join('');
+  // Dimensões explícitas — sem flex:1 — para html2canvas renderizar corretamente offscreen
+  const leftW=440, rightW=W-leftW;
+  const footerH=120; // altura do rodapé com nome
+  const photoH=H-footerH;
   const div=document.createElement('div');
-  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;display:flex;">
-    <div style="width:440px;height:${H}px;padding:80px 60px;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;">
+  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;">
+    <!-- Coluna esquerda: termos -->
+    <div style="position:absolute;top:0;left:0;width:${leftW}px;height:${H}px;padding:80px 60px;box-sizing:border-box;overflow:hidden;">
       <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:10px;${TS_ATTR}">Informações</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:48px;color:${fg};font-weight:300;line-height:1;margin-bottom:32px;${TS_ATTR}">Reserva</div>
-      <div style="flex:1;overflow:hidden;">${termsHtml}</div>
+      <div style="overflow:hidden;">${termsHtml}</div>
     </div>
-    <div style="flex:1;height:${H}px;display:flex;flex-direction:column;">
-      <div style="flex:1;position:relative;overflow:hidden;">
-        ${imgs.reserva?`<img src="${imgs.reserva}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${reservaImgPos};">
-        <div style="position:absolute;inset:0;background:${bg};opacity:${op*0.3};"></div>`:`<div style="position:absolute;inset:0;background:${getAccentDark()};"></div>`}
-      </div>
-      <div style="padding:32px 44px;background:${bg};">
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:${accent};margin-bottom:4px;${TS_ATTR}">${name}</div>
-        <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:3px;color:${fgd};text-transform:uppercase;margin-bottom:20px;${TS_ATTR}">${title}</div>
-        <div style="width:30px;height:.5px;background:${accent};margin-bottom:20px;"></div>
-      </div>
+    <!-- Coluna direita: foto (altura explícita) -->
+    <div style="position:absolute;top:0;left:${leftW}px;width:${rightW}px;height:${photoH}px;overflow:hidden;">
+      ${imgs.reserva
+        ?`<img src="${imgs.reserva}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${reservaImgPos};">
+          <div style="position:absolute;inset:0;background:${bg};opacity:${op*0.3};"></div>`
+        :`<div style="position:absolute;inset:0;background:${getAccentDark()};"></div>`}
+    </div>
+    <!-- Rodapé direito: nome do fotógrafo -->
+    <div style="position:absolute;top:${photoH}px;left:${leftW}px;width:${rightW}px;height:${footerH}px;background:${bg};padding:24px 44px;box-sizing:border-box;">
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:${accent};margin-bottom:4px;${TS_ATTR}">${name}</div>
+      <div style="font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:3px;color:${fgd};text-transform:uppercase;margin-bottom:16px;${TS_ATTR}">${title}</div>
+      <div style="width:30px;height:.5px;background:${accent};"></div>
     </div>
   </div>`;
   return div;
@@ -2971,24 +2978,26 @@ function buildContactPage() {
       <div style="font-family:'Montserrat',sans-serif;font-size:14px;color:${fg};font-weight:300;${TS_ATTR}">${c.val}</div>
     </div>`).join('');
 
+  // Dimensões explícitas — sem flex — para html2canvas renderizar corretamente offscreen
+  const photoW=340, rightW=W-photoW;
   const div=document.createElement('div');
-  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;display:flex;">
-    <!-- Left: photo full-height -->
-    <div style="width:340px;height:${H}px;position:relative;overflow:hidden;flex-shrink:0;">
+  div.innerHTML=`<div style="width:${W}px;height:${H}px;background:${bg};position:relative;overflow:hidden;">
+    <!-- Coluna esquerda: foto perfil (altura total explícita) -->
+    <div style="position:absolute;top:0;left:0;width:${photoW}px;height:${H}px;overflow:hidden;">
       ${imgs.profile
         ?`<img src="${imgs.profile}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${profileImgPos};">
           <div style="position:absolute;inset:0;background:${bg};opacity:${op*0.2};"></div>`
         :`<div style="position:absolute;inset:0;background:${getAccentDark()};"></div>`}
       <div style="position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,${bg}dd,transparent);"></div>
     </div>
-    <!-- Right: contact info -->
-    <div style="flex:1;height:${H}px;display:flex;flex-direction:column;justify-content:center;padding:80px 60px;background:${bg};">
+    <!-- Coluna direita: informações de contato -->
+    <div style="position:absolute;top:0;left:${photoW}px;width:${rightW}px;height:${H}px;background:${bg};padding:80px 60px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;">
       <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:5px;color:${accent};text-transform:uppercase;margin-bottom:12px;${TS_ATTR}">Contato</div>
       <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:52px;color:${fg};font-weight:300;line-height:1;margin-bottom:6px;${TS_ATTR}">${name}</div>
       <div style="font-family:'Montserrat',sans-serif;font-size:9px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:32px;${TS_ATTR}">${title}</div>
       <div style="width:40px;height:1px;background:${accent};margin-bottom:36px;"></div>
       ${contacts}
-      <div style="margin-top:auto;padding-top:40px;border-top:1px solid ${accent}33;">
+      <div style="margin-top:40px;padding-top:40px;border-top:1px solid ${accent}33;">
         <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:${fgd};${TS_ATTR}">${gv('f-tagline')}</div>
       </div>
     </div>
